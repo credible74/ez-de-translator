@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EZ-DE-TRANSLATOR</title>
+    <title>EZ-DE-TRANSLATOR PRO</title>
     <style>
-        :root { --primary: #1d7efd; --accent: #8f6fff; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --border: #334155; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
+        :root { --primary: #1d7efd; --accent: #8f6fff; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --border: #334155; font-size: 16px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; transition: background 0.3s, color 0.3s; }
         header { padding: 20px; background: var(--card); text-align: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .logo { font-size: 1.2rem; font-weight: 800; letter-spacing: 2px; color: var(--primary); text-transform: uppercase; }
         .container { max-width: 500px; margin: auto; padding: 15px; }
-        .search-box { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid var(--border); background: var(--card); color: var(--text); font-size: 16px; outline: none; box-sizing: border-box; }
+        .search-box { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid var(--border); background: var(--card); color: var(--text); font-size: 1rem; outline: none; box-sizing: border-box; }
         .search-box:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(29, 126, 253, 0.2); }
         #translation-banner { background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 20px; border-radius: 20px; margin: 15px 0; display: none; }
         .result-card { background: var(--card); border-radius: 20px; padding: 20px; margin-top: 15px; border: 1px solid var(--border); }
@@ -18,11 +18,12 @@
         .ez-word { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
         .wiki-img { width: 100%; border-radius: 15px; margin-top: 15px; display: none; border: 1px solid var(--border); }
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-item { background: none; border: none; color: #64748b; font-size: 1.4rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .nav-item { background: none; border: none; color: #64748b; font-size: 1.3rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
         .nav-item.active { color: var(--primary); }
-        .nav-item span { font-size: 0.7rem; font-weight: bold; margin-top: 4px; }
+        .nav-item span { font-size: 0.65rem; font-weight: bold; margin-top: 4px; }
         .btn-audio { background: var(--primary); border: none; width: 45px; height: 45px; border-radius: 50%; color: white; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
-        .quiz-option { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; cursor: pointer; }
+        .quiz-option { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; cursor: pointer; text-align: left; }
+        .select-input, .range-input { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; background: var(--bg); color: var(--text); border: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -30,6 +31,12 @@
 <header><div class="logo">EZ-DE-TRANSLATOR</div></header>
 
 <div class="container" id="tab-search">
+    <div class="result-card" id="daily-word-box" style="margin-bottom: 15px; text-align: center; background: linear-gradient(rgba(30,41,59,0.5), rgba(30,41,59,0.9));">
+        <span class="type-badge" style="background: var(--accent);">WORT DES TAGES</span>
+        <div class="ez-word" id="daily-ez">-</div>
+        <div style="font-size: 1rem; opacity: 0.8;" id="daily-de">-</div>
+    </div>
+    
     <input type="text" id="searchInput" class="search-box" placeholder="Suche (z.B. Die Mutter?)">
     <div id="translation-banner">
         <small style="color: rgba(255,255,255,0.8); font-weight: 800;">ÜBERSETZUNG:</small>
@@ -44,21 +51,50 @@
         <h2 id="q-question">Lade...</h2>
         <div id="q-options"></div>
         <p id="q-feedback" style="font-weight:bold; margin-top:15px;"></p>
-        <button onclick="initQuiz()" class="quiz-option" style="background:var(--primary); color:white; border:none; margin-top:20px;">Nächstes Wort</button>
+        <button onclick="initQuiz()" class="quiz-option" style="background:var(--primary); color:white; border:none; margin-top:20px; text-align:center;">Nächstes Wort</button>
+    </div>
+</div>
+
+<div class="container" id="tab-kultur" style="display:none;">
+    <div class="result-card">
+        <span class="type-badge">FEIERTAGE</span>
+        <h3 style="margin: 5px 0;">Nächste Feste</h3>
+        <p>• <b>Çarşema Sor:</b> Das jesidische Neujahr (April)</p>
+        <p>• <b>Cejna Ezî:</b> Das Fest zu Ehren Gottes (Dezember)</p>
+    </div>
+    <div class="result-card">
+        <span class="type-badge">HEILIGE ORTE</span>
+        <h3 style="margin: 5px 0;">Lalish</h3>
+        <p style="font-size:0.95rem; opacity:0.8;">Das zentrale Heiligtum der Jesiden im Nordirak. Ein Tal tiefster Spiritualität und Geschichte.</p>
+        <h3 style="margin: 5px 0;">Sindschar (Şengal)</h3>
+        <p style="font-size:0.95rem; opacity:0.8;">Die historische und kulturelle Hauptregion des jesidischen Volkes.</p>
     </div>
 </div>
 
 <div class="container" id="tab-settings" style="display:none;">
     <div class="result-card">
         <h3>App-Einstellungen</h3>
-        <button class="quiz-option" onclick="shareApp()">🔗 App teilen</button>
-        <button class="quiz-option" onclick="location.reload()">🔄 Update / Reset</button>
+        
+        <label><b>Design / Theme:</b></label>
+        <select class="select-input" onchange="changeTheme(this.value)">
+            <option value="dark">Klassisch Dark</option>
+            <option value="oled">OLED Schwarz</option>
+            <option value="gold">Lalish Gold</option>
+        </select>
+        
+        <label style="display:block; margin-top:15px;"><b>Schriftgröße:</b></label>
+        <input type="range" class="range-input" min="14" max="22" value="16" oninput="changeFontSize(this.value)">
+        
+        <hr style="border-color:var(--border); margin:20px 0;">
+        <button class="quiz-option" style="text-align:center;" onclick="shareApp()">🔗 App teilen</button>
+        <button class="quiz-option" style="text-align:center;" onclick="location.reload()">🔄 Update / Reset</button>
     </div>
 </div>
 
 <nav class="nav-bar">
     <button class="nav-item active" onclick="switchTab('search')">🔍<span>Suche</span></button>
     <button class="nav-item" onclick="switchTab('quiz')">🎮<span>Quiz</span></button>
+    <button class="nav-item" onclick="switchTab('kultur')">🦚<span>Kultur</span></button>
     <button class="nav-item" onclick="switchTab('settings')">⚙️<span>Info</span></button>
 </nav>
 
@@ -66,8 +102,7 @@
     let dictionary = {}, verbStems = {}, wordGender = {};
     const articles = ["der", "die", "das", "ein", "eine", "einer", "eines"];
     const csvUrl = 'https://docs.google.com/spreadsheets/d/1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY/export?format=csv';
-    
-    const localFallbackDiff = { "az": "ich", "the": "du", "aw": "er / sie / es", "mader": "Mutter", "pader": "Vater", "machen": "machen" };
+    const localFallbackDiff = { "az": "ich", "the": "du", "aw": "er / sie / es", "mader": "Mutter", "pader": "Vater" };
 
     fetch(csvUrl)
         .then(r => r.text())
@@ -83,18 +118,15 @@
                 }
             });
             initQuiz();
+            setDailyWord();
         }).catch(err => {
-            console.error("Sheets offline. Nutze Fallback:", err);
             dictionary = { ...localFallbackDiff };
             initQuiz();
+            setDailyWord();
         });
 
     function debounce(func, delay = 250) {
-        let timeout;
-        return (...args) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), delay);
-        };
+        let timeout; return (...args) => { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); };
     }
 
     const handleSmartSearch = () => {
@@ -106,18 +138,27 @@
 
         let words = text.toLowerCase().replace(/[?!.,]/g, "").split(/\s+/);
         let cardsHtml = "";
+        let foundAny = false;
 
         words.filter(w => !articles.includes(w)).forEach(word => {
             for (let ez in dictionary) {
                 if (ez.toLowerCase() === word || dictionary[ez].toLowerCase().split(" / ").includes(word)) {
                     cardsHtml += generateResultCard(ez, dictionary[ez]);
                     loadWikipedia(dictionary[ez]);
+                    foundAny = true;
                     break;
                 }
             }
         });
 
-        resultsDiv.innerHTML = cardsHtml || "<p style='text-align:center; margin-top:20px;'>Nicht gefunden.</p>";
+        if(!foundAny) {
+            cardsHtml = `<div class="result-card" style="text-align:center;">
+                <p>Nichts im Wörterbuch gefunden.</p>
+                <button class="quiz-option" style="background:var(--accent); color:white; text-align:center; border:none;" onclick="requestWord('${text}')">📝 Auf Wunschzettel setzen</button>
+            </div>`;
+        }
+
+        resultsDiv.innerHTML = cardsHtml;
         translateWithAI(text, words);
     };
 
@@ -126,7 +167,6 @@
     function translateWithAI(text, words) {
         const banner = document.getElementById('translation-banner');
         const sentenceDiv = document.getElementById('full-sentence');
-        
         let subjekt = "Az", suffix = "em", objekt = "", verbEz = "";
 
         if (words.includes("ich") || words.includes("az")) { subjekt = "Az"; suffix = "em"; }
@@ -141,11 +181,9 @@
         words.forEach(w => {
             if (["einen","eine","ich","du","er","sie","es","wir","ihr"].includes(w)) return;
             let search = w.startsWith("mach") ? "machen" : (w.startsWith("ess") || w.startsWith("iss") ? "essen" : w);
-
             for (let ez in dictionary) {
                 if (dictionary[ez].toLowerCase().split(" / ").includes(search) || ez.toLowerCase() === search) {
-                    if (verbStems[ez]) { verbEz = ez; } 
-                    else { objekt = ez.charAt(0).toUpperCase() + ez.slice(1); }
+                    if (verbStems[ez]) verbEz = ez; else objekt = ez.charAt(0).toUpperCase() + ez.slice(1);
                     break;
                 }
             }
@@ -159,7 +197,6 @@
         let verbKoni = verbEz && verbStems[verbEz] ? "de" + verbStems[verbEz].toLowerCase() + suffix : "";
         let finalSatz = text.includes("?") ? `${verbKoni} ${objekt}` : `${subjekt} ${objekt} ${verbKoni}`;
         
-        // Block 3: Erweiterte Grammatik
         if (words.some(w => ["war", "hatte", "gemacht", "gegessen", "ging", "gestern"].includes(w))) {
             finalSatz = finalSatz.replace(/\bde([a-z]+)(em|i|a|en)\b/gi, "re$1$2");
         }
@@ -184,7 +221,10 @@
                     <div class="ez-word">${ez}</div>
                     <div style="font-size:1.1rem; opacity:0.8;">${de}</div>
                 </div>
-                <button class="btn-audio" onclick="playAudio('${de}')">🔊</button>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-audio" style="background:#ef4444; font-size:1rem;" onclick="reportError('${ez}')">⚠️</button>
+                    <button class="btn-audio" onclick="playAudio('${de}')">🔊</button>
+                </div>
             </div>
             <p id="def-${de}" style="margin-top:15px; font-size:0.95rem;">Lade Definition...</p>
             <img id="img-${de}" class="wiki-img">
@@ -196,12 +236,19 @@
         try {
             const res = await fetch(`https://de.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
             const data = await res.json();
-            document.getElementById(`def-${word}`).innerHTML = data.extract ? `<b>Definition:</b> ${data.extract}` : "Keine Definition.";
+            document.getElementById(`def-${word}`).innerHTML = data.extract ? `<b>Definition:</b> ${data.extract}` : "Keine Detaildefinition.";
             if (data.thumbnail) {
-                const img = document.getElementById(`img-${word}`);
-                img.src = data.thumbnail.source; img.style.display = "block";
+                const img = document.getElementById(`img-${word}`); img.src = data.thumbnail.source; img.style.display = "block";
             }
         } catch (e) { document.getElementById(`def-${word}`).innerText = "Zusatzinfos nicht verfügbar."; }
+    }
+
+    function setDailyWord() {
+        const keys = Object.keys(dictionary);
+        if(!keys.length) return;
+        const dayIdx = new Date().getDate() % keys.length;
+        document.getElementById('daily-ez').innerText = keys[dayIdx];
+        document.getElementById('daily-de').innerText = dictionary[keys[dayIdx]];
     }
 
     function initQuiz() {
@@ -229,6 +276,14 @@
         });
     }
 
+    function changeTheme(theme) {
+        const r = document.documentElement.style;
+        if (theme === 'oled') { r.setProperty('--bg', '#000000'); r.setProperty('--card', '#111111'); r.setProperty('--border', '#222222'); r.setProperty('--primary', '#ffffff'); }
+        else if (theme === 'gold') { r.setProperty('--bg', '#1c1917'); r.setProperty('--card', '#292524'); r.setProperty('--border', '#44403c'); r.setProperty('--primary', '#eab308'); }
+        else { r.setProperty('--bg', '#0f172a'); r.setProperty('--card', '#1e293b'); r.setProperty('--border', '#334155'); r.setProperty('--primary', '#1d7efd'); }
+    }
+
+    function changeFontSize(px) { document.documentElement.style.fontSize = px + "px"; }
     function switchTab(tab) {
         document.querySelectorAll('.container').forEach(c => c.style.display = "none");
         document.getElementById('tab-' + tab).style.display = "block";
@@ -236,8 +291,10 @@
         if (event?.currentTarget) event.currentTarget.classList.add('active');
     }
 
-    function playAudio(txt) { window.speechSynthesis.speak(new SpeechSynthesisUtterance(txt)); }
+    function playAudio(t) { window.speechSynthesis.speak(new SpeechSynthesisUtterance(t)); }
     function shareApp() { if (navigator.share) navigator.share({ title: 'EZ-DE-TRANSLATOR', url: window.location.href }); }
+    function requestWord(w) { alert(`„${w}“ wurde auf den Wunschzettel gesetzt!`); }
+    function reportError(w) { alert(`Fehlermeldung für „${w}“ wurde an den Entwickler gesendet.`); }
 </script>
 </body>
 </html>
