@@ -228,6 +228,24 @@
     function shareApp() {
         if (navigator.share) navigator.share({ title: 'EZ-DE-TRANSLATOR', url: window.location.href });
     }
+    function translateWithAI(text) {
+    const banner = document.getElementById('translation-banner');
+    const sentenceDiv = document.getElementById('full-sentence');
+    if (!text) { banner.style.display = "none"; return; }
+
+    const words = text.toLowerCase().replace(/[?!.,]/g, "").split(/\s+/);
+    let result = words.map(w => {
+        for (let ez in dictionary) {
+            if (ez.toLowerCase() === w) return dictionary[ez];
+            if (dictionary[ez].toLowerCase().split(" / ").includes(w)) return ez;
+        }
+        return `[${w}]`;
+    });
+
+    banner.style.display = "block";
+    sentenceDiv.innerText = result.join(" ");
+}
+
 </script>
 </body>
 </html>
