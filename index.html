@@ -1,195 +1,243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EZ-DE-TRANSLATOR</title>
     <style>
         :root { --primary: #1d7efd; --accent: #8f6fff; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --border: #334155; }
-        
-        /* Die neuen Themes (Designs) */
-        body.theme-lalish { --primary: #d4af37; --accent: #f3e5ab; --bg: #1c1a17; --card: #2a2722; --text: #f5f2eb; --border: #443e35; }
-        body.theme-peacock { --primary: #00a896; --accent: #028090; --bg: #02111b; --card: #112a3a; --text: #e1f5fe; --border: #1a4663; }
-        body.theme-oled { --primary: #ffffff; --accent: #555555; --bg: #000000; --card: #111111; --text: #ffffff; --border: #222222; }
-
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; transition: background 0.3s, color 0.3s; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
         header { padding: 20px; background: var(--card); text-align: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .logo { font-size: 1.2rem; font-weight: 800; letter-spacing: 2px; color: var(--primary); text-transform: uppercase; }
         .container { max-width: 500px; margin: auto; padding: 15px; }
-        
-        .search-box { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid var(--border); background: var(--card); color: var(--text); font-size: 16px; outline: none; box-sizing: border-box; transition: 0.3s; }
+        .search-box { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid var(--border); background: var(--card); color: var(--text); font-size: 16px; outline: none; box-sizing: border-box; }
         .search-box:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(29, 126, 253, 0.2); }
-        
-        #translation-banner { background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 20px; border-radius: 20px; margin: 15px 0; display: none; animation: slideIn 0.3s ease; color: #fff; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .result-card { background: var(--card); border-radius: 20px; padding: 20px; margin-top: 15px; border: 1px solid var(--border); position: relative; }
-        .type-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; background: var(--primary); color: white; margin-bottom: 10px; text-transform: uppercase; }
+        #translation-banner { background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 20px; border-radius: 20px; margin: 15px 0; display: none; }
+        .result-card { background: var(--card); border-radius: 20px; padding: 20px; margin-top: 15px; border: 1px solid var(--border); }
+        .type-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; background: var(--primary); color: white; margin-bottom: 10px; }
         .ez-word { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-        
         .wiki-img { width: 100%; border-radius: 15px; margin-top: 15px; display: none; border: 1px solid var(--border); }
-        .example-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border-left: 4px solid var(--accent); margin-top: 10px; font-size: 0.95rem; line-height: 1.5; }
-
-        /* Navigation Bar erweitert für 4 Buttons */
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 100; }
-        .nav-item { background: none; border: none; color: #64748b; font-size: 1.3rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; width: 25%; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item { background: none; border: none; color: #64748b; font-size: 1.4rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
         .nav-item.active { color: var(--primary); }
-        .nav-item span { font-size: 0.65rem; font-weight: bold; margin-top: 4px; }
-        
+        .nav-item span { font-size: 0.7rem; font-weight: bold; margin-top: 4px; }
         .btn-audio { background: var(--primary); border: none; width: 45px; height: 45px; border-radius: 50%; color: white; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
-        .quiz-option { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; cursor: pointer; transition: 0.2s; text-align: left; }
-        
-        /* Wunschzettel-Button & Kultur-Karten */
-        .btn-action { background: rgba(255,255,255,0.15); border: none; color: white; padding: 10px 15px; border-radius: 10px; margin-top: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
-        .btn-action:hover { background: rgba(255,255,255,0.25); }
-        .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-        .theme-btn { padding: 15px; border: 1px solid var(--border); border-radius: 12px; font-weight: bold; cursor: pointer; color: white; text-align: center; }
-        .kultur-card { background: var(--card); border-radius: 15px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border); }
-        .kultur-img { width: 100%; height: 180px; object-fit: cover; }
-        .kultur-content { padding: 15px; }
+        .quiz-option { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; cursor: pointer; }
     </style>
+</head>
 <body>
 
 <header><div class="logo">EZ-DE-TRANSLATOR</div></header>
 
-<!-- TAB 1: SUCHE & TRANSLATOR -->
 <div class="container" id="tab-search">
-    <!-- Wort des Tages Box -->
-    <div class="result-card" id="word-of-the-day-box" style="margin-bottom: 15px; background: linear-gradient(135deg, rgba(29,126,253,0.1), rgba(143,111,255,0.1)); border-color: var(--primary);">
-        <div class="type-badge" style="background: var(--accent);">Wort des Tages 🌟</div>
-        <div class="ez-word" id="daily-ez">Lade...</div>
-        <div style="opacity: 0.8; font-size: 1rem;" id="daily-de">...</div>
-    </div>
-
-    <input type="text" id="searchInput" class="search-box" placeholder="Suche (z.B. Ich esse einen Apfel?)" oninput="handleSmartSearch()">
-    
+    <input type="text" id="searchInput" class="search-box" placeholder="Suche (z.B. Die Mutter?)">
     <div id="translation-banner">
-        <small style="color: rgba(255,255,255,0.8); font-weight: 800;">LERNENDER SATZBAU:</small>
+        <small style="color: rgba(255,255,255,0.8); font-weight: 800;">ÜBERSETZUNG:</small>
         <div id="full-sentence" style="font-size: 1.4rem; font-weight: bold; margin-top: 5px;"></div>
-        <div id="wishlist-area"></div>
     </div>
-
     <div id="results"></div>
 </div>
 
-<!-- TAB 2: QUIZ-MODUS -->
 <div class="container" id="tab-quiz" style="display:none;">
     <div class="result-card" style="text-align:center;">
         <div class="type-badge">QUIZ-MODUS</div>
         <h2 id="q-question">Lade...</h2>
         <div id="q-options"></div>
         <p id="q-feedback" style="font-weight:bold; margin-top:15px;"></p>
-        <button onclick="initQuiz()" class="quiz-option" style="background:var(--primary); color:white; border:none; margin-top:20px; text-align:center;">Nächstes Wort</button>
+        <button onclick="initQuiz()" class="quiz-option" style="background:var(--primary); color:white; border:none; margin-top:20px;">Nächstes Wort</button>
     </div>
 </div>
 
-<!-- TAB 3: KULTUR & HISTORIE -->
-<div class="container" id="tab-kultur" style="display:none;">
-    <h3 style="color: var(--primary);">Sehenswürdigkeiten & Heiligtümer</h3>
-    
-    <div class="kultur-card">
-        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=500" class="kultur-img" alt="Lalish"> <!-- Platzhalter-Bild -->
-        <div class="kultur-content">
-            <span class="type-badge">Hauptheiligtum</span>
-            <h4 style="margin: 5px 0; font-size: 1.3rem;">Lalish (Lalişa Nûranî)</h4>
-            <p style="font-size: 0.9rem; opacity: 0.8; line-height: 1.4;">Das heilige Tal Lalish im Nordirak ist das spirituelle Zentrum aller Jesiden weltweit. Hier befindet sich das Grab von Schich Adi.</p>
-        </div>
-    </div>
-
-    <h3 style="color: var(--primary); margin-top: 25px;">Kommende Feiertage</h3>
-    <div class="result-card" style="border-left: 4px solid #10b981;">
-        <div style="font-weight: bold; color: #10b981;">Çarşema Sor (Jesidisches Neujahr)</div>
-        <div style="font-size: 0.85rem; opacity: 0.6; margin-bottom: 5px;">Erster Mittwoch im April (Ostdoktrin)</div>
-        <p style="margin: 0; font-size: 0.9rem; opacity: 0.8;">Das Fest markiert den Beginn der Schöpfung und die Ankunft des Engels Tausi Melek auf der Erde.</p>
-    </div>
-</div>
-
-<!-- TAB 4: SETTINGS & DESIGNS -->
 <div class="container" id="tab-settings" style="display:none;">
     <div class="result-card">
-        <h3>App-Design anpassen</h3>
-        <div class="theme-grid">
-            <div class="theme-btn" style="background: #1d7efd;" onclick="changeTheme('default')">Deep Blue</div>
-            <div class="theme-btn" style="background: #d4af37; color: #000;" onclick="changeTheme('lalish')">Lalish Gold</div>
-            <div class="theme-btn" style="background: #00a896;" onclick="changeTheme('peacock')">Peacock</div>
-            <div class="theme-btn" style="background: #111; border: 1px solid #333;" onclick="changeTheme('oled')">OLED Black</div>
-        </div>
-    </div>
-    
-    <div class="result-card" style="margin-top:15px;">
-        <h3>App-Optionen</h3>
+        <h3>App-Einstellungen</h3>
         <button class="quiz-option" onclick="shareApp()">🔗 App teilen</button>
-        <button class="quiz-option" onclick="location.reload()">🔄 Cache leeren / Update</button>
+        <button class="quiz-option" onclick="location.reload()">🔄 Update / Reset</button>
     </div>
 </div>
 
-<!-- Die aktualisierte Navigationsleiste -->
 <nav class="nav-bar">
     <button class="nav-item active" onclick="switchTab('search')">🔍<span>Suche</span></button>
     <button class="nav-item" onclick="switchTab('quiz')">🎮<span>Quiz</span></button>
-    <button class="nav-item" onclick="switchTab('kultur')">🕌<span>Kultur</span></button>
-    <button class="nav-item" onclick="switchTab('settings')">⚙️<span>Optionen</span></button>
+    <button class="nav-item" onclick="switchTab('settings')">⚙️<span>Info</span></button>
 </nav>
-    // ==========================================
-// ERWEITERUNG: BLOCK 3 (GRAMMATIK & ZEITFORMEN)
-// ==========================================
 
-function applyAdvancedGrammar(finalSatz, words) {
-    // 1. Vergangenheitsform (Präteritum/Perfekt) erkennen und Suffix anpassen
-    if (words.some(w => ["war", "hatte", "gemacht", "gegessen", "ging", "vorgestern", "gestern"].includes(w))) {
-        // Ersetzt das Präfix 'de' durch das Vergangenheitspräfix 're'
-        finalSatz = finalSatz.replace(/\bde([a-z]+)(em|i|a|en)\b/gi, "re$1$2");
+<script>
+    let dictionary = {}, verbStems = {}, wordGender = {};
+    const articles = ["der", "die", "das", "ein", "eine", "einer", "eines"];
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY/export?format=csv';
+    
+    const localFallbackDiff = { "az": "ich", "the": "du", "aw": "er / sie / es", "mader": "Mutter", "pader": "Vater", "machen": "machen" };
+
+    fetch(csvUrl)
+        .then(r => r.text())
+        .then(text => {
+            text.split("\n").forEach((zeile, idx) => {
+                if (idx === 0 || !zeile.trim()) return;
+                const spalten = zeile.split(",");
+                if (spalten.length >= 2) {
+                    const ez = spalten[0].trim(), de = spalten[1].trim();
+                    dictionary[ez] = de;
+                    if(spalten[2]) verbStems[ez] = spalten[2].trim();
+                    if(spalten[3]) wordGender[ez] = spalten[3].trim().toLowerCase();
+                }
+            });
+            initQuiz();
+        }).catch(err => {
+            console.error("Sheets offline. Nutze Fallback:", err);
+            dictionary = { ...localFallbackDiff };
+            initQuiz();
+        });
+
+    function debounce(func, delay = 250) {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
     }
 
-    // 2. Plural-Erkennung für Objekte (Erweiterung der -án Regel)
-    // Wenn ein Wort auf typische deutsche Pluralendungen endet, füge Plural-Suffix hinzu
-    for (let ez in dictionary) {
-        if (wordGender[ez] === "plural" || words.some(w => w === ez.toLowerCase() + "s" || w === ez.toLowerCase() + "e")) {
-            finalSatz = finalSatz.replace(new RegExp(`\\b${ez}\\b`, "gi"), ez + "án");
-        }
-    }
+    const handleSmartSearch = () => {
+        const text = document.getElementById('searchInput').value.trim();
+        const resultsDiv = document.getElementById('results');
+        const banner = document.getElementById('translation-banner');
 
-    // 3. Possessivpronomen (mein, dein, sein) als Suffixe verarbeiten
-    if (words.includes("mein") || words.includes("meine")) {
-        finalSatz = finalSatz.replace(/\b([A-Z][a-z]+)\b/g, "$1-mô"); // z.B. Mutter-mô
-    } else if (words.includes("dein") || words.includes("deine")) {
-        finalSatz = finalSatz.replace(/\b([A-Z][a-z]+)\b/g, "$1-tô"); // z.B. Mutter-tô
-    }
+        if (!text) { resultsDiv.innerHTML = ""; banner.style.display = "none"; return; }
 
-    // 4. Letzter Schliff: Bereinigung doppelter Leerzeichen & finale Formatierung
-    finalSatz = finalSatz.replace(/\s+/g, " ").trim();
-    return finalSatz.charAt(0).toUpperCase() + finalSatz.slice(1);
-}
+        let words = text.toLowerCase().replace(/[?!.,]/g, "").split(/\s+/);
+        let cardsHtml = "";
 
-// Integriere diese Zeile am Ende deiner bestehenden 'translateWithAI'-Funktion (direkt vor dem "Y"-Regel-Replace):
-// finalSatz = applyAdvancedGrammar(finalSatz, words);
+        words.filter(w => !articles.includes(w)).forEach(word => {
+            for (let ez in dictionary) {
+                if (ez.toLowerCase() === word || dictionary[ez].toLowerCase().split(" / ").includes(word)) {
+                    cardsHtml += generateResultCard(ez, dictionary[ez]);
+                    loadWikipedia(dictionary[ez]);
+                    break;
+                }
+            }
+        });
 
-
-// ==========================================
-// ERWEITERUNG: BLOCK 4 (ROBUSTHEIT & CACHE)
-// ==========================================
-
-// 1. Lokales Fallback-Wörterbuch (falls die Google-Tabelle offline ist)
-const localFallbackDiff = {
-    "az": "ich", "the": "du", "aw": "er / sie / es",
-    "mader": "Mutter", "pader": "Vater", "machen": "machen"
-};
-
-// 2. Debounce-Funktion (verhindert Server-Überlastung bei schnellem Tippen)
-function debounce(func, delay = 300) {
-    let timeout;
-    return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), delay);
+        resultsDiv.innerHTML = cardsHtml || "<p style='text-align:center; margin-top:20px;'>Nicht gefunden.</p>";
+        translateWithAI(text, words);
     };
-}
 
-// Optimiert den Such-Aufruf durch Verzögerung
-const debouncedSearch = debounce(() => handleSmartSearch());
-document.getElementById('searchInput').oninput = debouncedSearch;
+    document.getElementById('searchInput').oninput = debounce(handleSmartSearch);
 
-// 3. Fehler-Handler für die CSV-Verbindung (Erweiterung des fetch.catch)
-function loadLocalFallback() {
-    console.warn("Google Sheets offline. Nutze lokalen Cache...");
-    dictionary = { ...localFallbackDiff };
-    initQuiz();
-}
+    function translateWithAI(text, words) {
+        const banner = document.getElementById('translation-banner');
+        const sentenceDiv = document.getElementById('full-sentence');
+        
+        let subjekt = "Az", suffix = "em", objekt = "", verbEz = "";
 
-// Ersetze das .catch(err => ...) im initialen Fetch durch:
-// .catch(err => { console.error(err); loadLocalFallback(); });
+        if (words.includes("ich") || words.includes("az")) { subjekt = "Az"; suffix = "em"; }
+        else if (words.includes("du") || words.includes("the")) { subjekt = "The"; suffix = "i"; }
+        else if (words.includes("er") || words.includes("sie") || words.includes("es") || words.includes("aw")) {
+            const isPlural = words.includes("wir") || words.includes("ihr") || words.indexOf("sie") !== words.lastIndexOf("sie");
+            subjekt = "Aw"; suffix = isPlural ? "en" : "a";
+        }
+        else if (words.includes("ihr") || words.includes("hoon")) { subjekt = "Hoon"; suffix = "en"; }
+        else if (words.includes("wir") || words.includes("am")) { subjekt = "Am"; suffix = "en"; }
 
+        words.forEach(w => {
+            if (["einen","eine","ich","du","er","sie","es","wir","ihr"].includes(w)) return;
+            let search = w.startsWith("mach") ? "machen" : (w.startsWith("ess") || w.startsWith("iss") ? "essen" : w);
 
+            for (let ez in dictionary) {
+                if (dictionary[ez].toLowerCase().split(" / ").includes(search) || ez.toLowerCase() === search) {
+                    if (verbStems[ez]) { verbEz = ez; } 
+                    else { objekt = ez.charAt(0).toUpperCase() + ez.slice(1); }
+                    break;
+                }
+            }
+        });
+
+        if (objekt) {
+            if (words.includes("einen") || words.includes("eine")) objekt += "axé";
+            else if (["äpfel","flaschen","melonen"].some(v => words.includes(v))) objekt += "án";
+        }
+
+        let verbKoni = verbEz && verbStems[verbEz] ? "de" + verbStems[verbEz].toLowerCase() + suffix : "";
+        let finalSatz = text.includes("?") ? `${verbKoni} ${objekt}` : `${subjekt} ${objekt} ${verbKoni}`;
+        
+        // Block 3: Erweiterte Grammatik
+        if (words.some(w => ["war", "hatte", "gemacht", "gegessen", "ging", "gestern"].includes(w))) {
+            finalSatz = finalSatz.replace(/\bde([a-z]+)(em|i|a|en)\b/gi, "re$1$2");
+        }
+        for (let ez in dictionary) {
+            if (wordGender[ez] === "plural" || words.some(w => w === ez.toLowerCase() + "s" || w === ez.toLowerCase() + "e")) {
+                finalSatz = finalSatz.replace(new RegExp(`\\b${ez}\\b`, "gi"), ez + "án");
+            }
+        }
+        if (words.includes("mein") || words.includes("meine")) finalSatz = finalSatz.replace(/\b([A-Z][a-z]+)\b/g, "$1-mô");
+        else if (words.includes("dein") || words.includes("deine")) finalSatz = finalSatz.replace(/\b([A-Z][a-z]+)\b/g, "$1-tô");
+
+        finalSatz = finalSatz.trim().replace(/([aeiouäöü])\s+([aeiouäöü])/gi, "$1 yi $2").replace(/\s+/g, " ");
+        sentenceDiv.innerText = finalSatz.charAt(0).toUpperCase() + finalSatz.slice(1);
+        banner.style.display = "block";
+    }
+
+    function generateResultCard(ez, de) {
+        return `<div class="result-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span class="type-badge">VOKABEL</span>
+                    <div class="ez-word">${ez}</div>
+                    <div style="font-size:1.1rem; opacity:0.8;">${de}</div>
+                </div>
+                <button class="btn-audio" onclick="playAudio('${de}')">🔊</button>
+            </div>
+            <p id="def-${de}" style="margin-top:15px; font-size:0.95rem;">Lade Definition...</p>
+            <img id="img-${de}" class="wiki-img">
+        </div>`;
+    }
+
+    async function loadWikipedia(word) {
+        const query = word.split(" / ")[0].trim();
+        try {
+            const res = await fetch(`https://de.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+            const data = await res.json();
+            document.getElementById(`def-${word}`).innerHTML = data.extract ? `<b>Definition:</b> ${data.extract}` : "Keine Definition.";
+            if (data.thumbnail) {
+                const img = document.getElementById(`img-${word}`);
+                img.src = data.thumbnail.source; img.style.display = "block";
+            }
+        } catch (e) { document.getElementById(`def-${word}`).innerText = "Zusatzinfos nicht verfügbar."; }
+    }
+
+    function initQuiz() {
+        const keys = Object.keys(dictionary); if (keys.length < 4) return;
+        const correct = keys[Math.floor(Math.random() * keys.length)];
+        let opts = [dictionary[correct]];
+        while (opts.length < 4) {
+            let r = dictionary[keys[Math.floor(Math.random() * keys.length)]];
+            if (!opts.includes(r)) opts.push(r);
+        }
+        opts.sort(() => Math.random() - 0.5);
+
+        document.getElementById('q-question').innerText = `Was bedeutet "${correct}"?`;
+        document.getElementById('q-feedback').innerText = "";
+        const optDiv = document.getElementById('q-options'); optDiv.innerHTML = "";
+        
+        opts.forEach(opt => {
+            const b = document.createElement('button'); b.className = "quiz-option"; b.innerText = opt;
+            b.onclick = () => {
+                const isCorrect = opt === dictionary[correct];
+                b.style.background = isCorrect ? "#10b981" : "#ef4444";
+                document.getElementById('q-feedback').innerText = isCorrect ? "✅ Richtig!" : "❌ Falsch!";
+            };
+            optDiv.appendChild(b);
+        });
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('.container').forEach(c => c.style.display = "none");
+        document.getElementById('tab-' + tab).style.display = "block";
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if (event?.currentTarget) event.currentTarget.classList.add('active');
+    }
+
+    function playAudio(txt) { window.speechSynthesis.speak(new SpeechSynthesisUtterance(txt)); }
+    function shareApp() { if (navigator.share) navigator.share({ title: 'EZ-DE-TRANSLATOR', url: window.location.href }); }
+</script>
+</body>
+</html>
