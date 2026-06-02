@@ -2,330 +2,138 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EZ-DE-TRANSLATOR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Äzidiki Wörterbuch & Grammatik</title>
     <style>
-        :root { --primary: #1d7efd; --accent: #8f6fff; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --border: #334155; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
-        header { padding: 20px; background: var(--card); text-align: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 1.2rem; font-weight: 800; letter-spacing: 2px; color: var(--primary); text-transform: uppercase; }
-        .container { max-width: 500px; margin: auto; padding: 15px; }
-        .search-box { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid var(--border); background: var(--card); color: var(--text); font-size: 16px; outline: none; box-sizing: border-box; transition: 0.3s; }
-        .search-box:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(29, 126, 253, 0.2); }
-        
-        #translation-banner { background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 20px; border-radius: 20px; margin: 15px 0; display: none; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .result-card { background: var(--card); border-radius: 20px; padding: 20px; margin-top: 15px; border: 1px solid var(--border); }
-        .type-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; background: var(--primary); color: white; margin-bottom: 10px; }
-        .ez-word { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-        
-        .wiki-img { width: 100%; border-radius: 15px; margin-top: 15px; display: none; border: 1px solid var(--border); }
-        .example-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border-left: 4px solid var(--accent); margin-top: 10px; font-size: 0.95rem; line-height: 1.5; }
-
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-item { background: none; border: none; color: #64748b; font-size: 1.4rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-        .nav-item.active { color: var(--primary); }
-        .nav-item span { font-size: 0.7rem; font-weight: bold; margin-top: 4px; }
-        
-        .btn-audio { background: var(--primary); border: none; width: 45px; height: 45px; border-radius: 50%; color: white; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
-        
-        .quiz-option { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; cursor: pointer; transition: 0.2s; }
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; }
+        input { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        #translation-banner { display: none; background: #0056b3; color: white; padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 18px; font-weight: bold; }
+        .result-card { background: white; padding: 15px; margin-top: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h3 { margin: 0 0 5px 0; color: #0056b3; }
     </style>
 </head>
 <body>
 
-<header><div class="logo">EZ-DE-TRANSLATOR</div></header>
-
-<div class="container" id="tab-search">
-    <input type="text" id="searchInput" class="search-box" placeholder="Suche (z.B. Die Mutter?)" oninput="handleSmartSearch()">
+<div class="container">
+    <h2>Äzidiki Sprach-Assistent</h2>
+    <input type="text" id="search-input" placeholder="Wort oder Satz auf Deutsch/Jesidisch tippen..." oninput="onSearchInput(this.value)">
     
     <div id="translation-banner">
-        <small style="color: rgba(255,255,255,0.8); font-weight: 800;">KOMPLETTE ÜBERSETZUNG:</small>
-        <div id="full-sentence" style="font-size: 1.4rem; font-weight: bold; margin-top: 5px;"></div>
+        <span style="font-size:12px; display:block; opacity:0.8;">Grammatik-Satzbau:</span>
+        <div id="full-sentence"></div>
     </div>
 
     <div id="results"></div>
 </div>
 
-<div class="container" id="tab-quiz" style="display:none;">
-    <div class="result-card" style="text-align:center;">
-        <div class="type-badge">QUIZ-MODUS</div>
-        <h2 id="q-question">Lade...</h2>
-        <div id="q-options"></div>
-        <p id="q-feedback" style="font-weight:bold; margin-top:15px;"></p>
-        <button onclick="initQuiz()" class="quiz-option" style="background:var(--primary); color:white; border:none; margin-top:20px;">Nächstes Wort</button>
-    </div>
-</div>
-
-<div class="container" id="tab-settings" style="display:none;">
-    <div class="result-card">
-        <h3>App-Einstellungen</h3>
-        <button class="quiz-option" onclick="shareApp()">🔗 App teilen</button>
-        <button class="quiz-option" onclick="location.reload()">🔄 Cache leeren / Update</button>
-    </div>
-</div>
-
-<nav class="nav-bar">
-    <button class="nav-item active" onclick="switchTab('search')">🔍<span>Suche</span></button>
-    <button class="nav-item" onclick="switchTab('quiz')">🎮<span>Quiz</span></button>
-    <button class="nav-item" onclick="switchTab('settings')">⚙️<span>Info</span></button>
-</nav>
-
 <script>
-    let dictionary = {};
-    const articles = ["der", "die", "das", "ein", "eine", "einer", "eines"];
+https://docs.google.com/spreadsheets/d/1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY/edit?usp=drivesdk
+const SHEET_URL = "HIER_DEINE_GOOGLE_SHEETS_CSV_URL_EINTRÄGEN";
 
-    // Dein umgewandelter Google Sheets Link
-    const googleSheetsCsvUrl = 'https://docs.google.com/spreadsheets/d/1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY/export?format=csv';
-
-    fetch(googleSheetsCsvUrl)
-        .then(r => r.text())
-        .then(text => {
-            const zeilen = text.split("\n");
-            zeilen.forEach((zeile, index) => {
-                if (index === 0 || !zeile.trim()) return;
-                
-                const spalten = zeile.split(",");
-                if (spalten.length >= 2) {
-                    const ez = spalten[0].trim();
-                    const de = spalten[1].trim();
-                    dictionary[ez] = de;
-                }
-            });
-            initQuiz();
-        })
-        .catch(err => console.error("Fehler beim Laden der Tabelle: ", err));
-
-    function handleSmartSearch() {
-        const input = document.getElementById('searchInput').value.trim();
-        const resultsDiv = document.getElementById('results');
-        const banner = document.getElementById('translation-banner');
-        const sentenceDiv = document.getElementById('full-sentence');
-
-        if (!input) { resultsDiv.innerHTML = ""; banner.style.display = "none"; return; }
-
-        const words = input.toLowerCase()
-            .replace(/[?!.,]/g, "") 
-            .split(/\s+/)
-            .filter(w => !articles.includes(w));
-
-        let translatedParts = [];
-        let cardsHtml = "";
-
-        words.forEach(word => {
-            let foundMatch = false;
-            for (let ez in dictionary) {
-                const de = dictionary[ez].toLowerCase();
-                if (ez.toLowerCase() === word || de.split(" / ").includes(word)) {
-                    translatedParts.push(ez.toLowerCase() === word ? dictionary[ez] : ez);
-                    cardsHtml += generateResultCard(ez, dictionary[ez]);
-                    loadWikipedia(dictionary[ez]);
-                    foundMatch = true;
-                    break;
-                }
-            }
-            if (!foundMatch) translatedParts.push(`[${word}]`);
-        });
-
-        if (words.length > 0) {
-            banner.style.display = "block";
-            sentenceDiv.innerText = translatedParts.join(" ");
-            resultsDiv.innerHTML = cardsHtml || "<p style='text-align:center; margin-top:20px;'>Nichts im Wörterbuch gefunden.</p>";
-        }
-    }
-
-    function generateResultCard(ez, de) {
-        return `
-        <div class="result-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <span class="type-badge">SUBSTANTIV / PHRASE</span>
-                    <div class="ez-word">${ez}</div>
-                    <div style="font-size:1.1rem; opacity:0.8;">${de}</div>
-                </div>
-                <button class="btn-audio" onclick="playAudio('${de}')">🔊</button>
-            </div>
-            <div class="details">
-                <p id="def-${de}" style="margin-top:15px; font-size:0.95rem; line-height:1.6;">Lade Definition...</p>
-                <img id="img-${de}" class="wiki-img">
-                <div class="example-box" id="ex-${de}">
-                    <b>Beispiel:</b> Ich benutze das Wort "${de.split(' / ')[0]}" in einem Satz.
-                </div>
-            </div>
-        </div>`;
-    }
-
-    async function loadWikipedia(word) {
-        const query = word.split(" / ")[0].trim();
-        try {
-            const res = await fetch(`https://de.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-            const data = await res.json();
-            const defEl = document.getElementById(`def-${word}`);
-            const imgEl = document.getElementById(`img-${word}`);
-
-            if (data.extract) {
-                defEl.innerHTML = `<b>Definition:</b> ${data.extract}`;
-            } else {
-                defEl.innerText = "Keine weitere Definition gefunden.";
-            }
-            if (data.thumbnail) {
-                imgEl.src = data.thumbnail.source;
-                imgEl.style.display = "block";
-            }
-        } catch (e) {
-            document.getElementById(`def-${word}`).innerText = "Zusatzinfos nicht verfügbar.";
-        }
-    }
-
-    function initQuiz() {
-        const keys = Object.keys(dictionary);
-        if (keys.length < 4) return;
-        const correct = keys[Math.floor(Math.random() * keys.length)];
-        let options = [dictionary[correct]];
-        while (options.length < 4) {
-            let rand = dictionary[keys[Math.floor(Math.random() * keys.length)]];
-            if (!options.includes(rand)) options.push(rand);
-        }
-        options.sort(() => Math.random() - 0.5);
-
-        document.getElementById('q-question').innerText = `Was bedeutet "${correct}"?`;
-        document.getElementById('q-feedback').innerText = "";
-        const optDiv = document.getElementById('q-options');
-        optDiv.innerHTML = "";
-        options.forEach(opt => {
-            const b = document.createElement('button');
-            b.className = "quiz-option";
-            b.innerText = opt;
-            b.onclick = () => {
-                if (opt === dictionary[correct]) {
-                    b.style.background = "#10b981";
-                    document.getElementById('q-feedback').innerText = "✅ Richtig!";
-                } else {
-                    b.style.background = "#ef4444";
-                    document.getElementById('q-feedback').innerText = "❌ Versuch es nochmal!";
-                }
-            };
-            optDiv.appendChild(b);
-        });
-    }
-
-    function switchTab(tab) {
-        document.querySelectorAll('.container').forEach(c => c.style.display = "none");
-        document.getElementById('tab-' + tab).style.display = "block";
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        if (event && event.currentTarget) {
-            event.currentTarget.classList.add('active');
-        }
-    }
-
-    function playAudio(txt) {
-        const u = new SpeechSynthesisUtterance(txt);
-        u.lang = 'de-DE';
-        window.speechSynthesis.speak(u);
-    }
-
-    function shareApp() {
-        if (navigator.share) navigator.share({ title: 'EZ-DE-TRANSLATOR', url: window.location.href });
-    }
-    f// Globale Variablen für die neuen Spaltenerweiterungen
+let dictionary = {};
 let verbStems = {};
 let wordGender = {};
 
-// Diese Zeile in deinem bestehenden fetch-Block anpassen, damit die neuen Spalten geladen werden:
-// (Ersetze den alten spalten-Teil im fetch durch das hier):
-/*
-const spalten = zeile.split(",");
-if (spalten.length >= 2) {
-    const ez = spalten[0].trim();
-    const de = spalten[1].trim();
-    dictionary[ez] = de;
-    if(spalten[2]) verbStems[ez] = spalten[2].trim(); // Spalte C
-    if(spalten[3]) wordGender[ez] = spalten[3].trim().toLowerCase(); // Spalte D
-}
-*/
+// 1. Daten aus Google Sheets laden
+fetch(SHEET_URL)
+    .then(res => res.text())
+    .then(csvText => {
+        const zeilen = csvText.split("\n");
+        for (let i = 1; i < zeilen.length; i++) {
+            if (!zeilen[i].trim()) continue;
+            const spalten = zeilen[i].split(",");
+            if (spalten.length >= 2) {
+                const ez = spalten[0].trim();
+                const de = spalten[1].trim();
+                dictionary[ez] = de;
+                if (spalten[2] && spalten[2].trim()) verbStems[ez] = spalten[2].trim();
+                if (spalten[3] && spalten[3].trim()) wordGender[ez] = spalten[3].trim().toLowerCase();
+            }
+        }
+    }).catch(err => console.error("Fehler beim Laden der Tabelle:", err));
 
+// 2. Such-Steuerung (Vorschläge oder Satz-KI)
+function onSearchInput(text) {
+    const banner = document.getElementById('translation-banner');
+    const ergebnisBereich = document.getElementById('results');
+    ergebnisBereich.innerHTML = "";
+
+    if (!text.trim()) { banner.style.display = "none"; return; }
+
+    // Wenn es ein Satz ist (enthält Leerzeichen), nutze Grammatik-KI
+    if (text.trim().includes(" ")) {
+        translateWithAI(text);
+    } else {
+        banner.style.display = "none";
+        // Einzelwort-Vorschläge anzeigen
+        const suche = text.toLowerCase().trim();
+        for (let ez in dictionary) {
+            if (ez.toLowerCase().includes(suche) || dictionary[ez].toLowerCase().includes(suche)) {
+                let card = document.createElement('div');
+                card.className = 'result-card';
+                card.innerHTML = `<h3>${ez}</h3><p>${dictionary[ez]}</p>`;
+                ergebnisBereich.appendChild(card);
+            }
+        }
+    }
+}
+
+// 3. Die Grammatik-KI
 function translateWithAI(text) {
     const banner = document.getElementById('translation-banner');
     const sentenceDiv = document.getElementById('full-sentence');
-    if (!text) { banner.style.display = "none"; return; }
-
-    let inputLower = text.toLowerCase().replace(/[?!.,]/g, "");
-    let words = inputLower.split(/\s+/);
     
-    let subjekt = "Az"; 
-    let subjektSuffix = "em";
-    let objekt = "";
-    let verbEz = "";
-    let istFrage = text.includes("?");
+    let words = text.toLowerCase().replace(/[?!.,]/g, "").split(/\s+/);
+    let subjekt = "Az", subjektSuffix = "em", objekt = "", verbEz = "", istFrage = text.includes("?");
 
-    // 1. Subjekt & Personalpronomen erkennen
+    // Pronomen prüfen
     if (words.includes("ich") || words.includes("az")) { subjekt = "Az"; subjektSuffix = "em"; }
     else if (words.includes("du") || words.includes("the")) { subjekt = "The"; subjektSuffix = "i"; }
-    else if (words.includes("er") || words.includes("sie") || words.includes("es") || words.includes("aw")) { 
-        if (words.includes("wir") || words.includes("ihr") || words.indexOf("sie") !== words.lastIndexOf("sie")) {
-            subjekt = "Aw"; subjektSuffix = "en"; 
-        } else {
-            subjekt = "Aw"; subjektSuffix = "a"; 
-        }
+    else if (words.includes("er") || words.includes("sie") || words.includes("es") || words.includes("aw")) {
+        subjekt = (words.includes("wir") || words.includes("ihr") || words.indexOf("sie") !== words.lastIndexOf("sie")) ? "Aw" : "Aw";
+        subjektSuffix = (words.includes("wir") || words.includes("ihr") || words.indexOf("sie") !== words.lastIndexOf("sie")) ? "en" : "a";
     }
-    else if (words.includes("ihr") || words.includes("hoon")) { subjekt = "Hoon"; subjektSuffix = "en"; }
+    else if (words.includes("ihr") || words.includes("hoon")) { { subjekt = "Hoon"; subjektSuffix = "en"; } }
     else if (words.includes("wir") || words.includes("am")) { subjekt = "Am"; subjektSuffix = "en"; }
 
-    // 2. Wörter & gebeugte Verben aus Tabelle heraussuchen
+    // Wörter zuordnen
     words.forEach(w => {
-        if (w === "einen" || w === "eine" || w === "ich" || w === "du" || w === "er" || w === "sie" || w === "es" || w === "wir" || w === "ihr") return;
-
-        // Hilfs-Stammfunktion für deutsche Verben (mache/machst/macht -> machen)
+        if (["einen","eine","ich","du","er","sie","es","wir","ihr"].includes(w)) return;
         let suchWort = w;
         if (w.startsWith("mach")) suchWort = "machen";
         if (w.startsWith("ess") || w.startsWith("iss")) suchWort = "essen";
 
         for (let ez in dictionary) {
-            let deOptions = dictionary[ez].toLowerCase().split(" / ");
-            if (deOptions.includes(suchWort) || ez.toLowerCase() === suchWort) {
-                if (verbStems[ez]) {
-                    verbEz = ez; 
-                } else {
-                    objekt = ez;
-                    objekt = objekt.charAt(0).toUpperCase() + objekt.slice(1);
-                }
+            if (dictionary[ez].toLowerCase().split(" / ").includes(suchWort) || ez.toLowerCase() === suchWort) {
+                if (verbStems[ez]) { verbEz = ez; } 
+                else { objekt = ez.charAt(0).toUpperCase() + ez.slice(1); }
                 break;
             }
         }
     });
 
-    // 3. Artikel-Suffixe (-axé / -án)
+    // Suffixe anhängen (Artikel)
     if (objekt) {
-        if (words.includes("einen") || words.includes("eine")) {
-            objekt += "axé";
-        } else if (words.includes("äpfel") || words.includes("flaschen") || words.includes("melonen")) {
-            objekt += "án";
-        }
+        if (words.includes("einen") || words.includes("eine")) objekt += "axé";
+        else if (words.includes("äpfel") || words.includes("flaschen") || words.includes("melonen")) objekt += "án";
     }
 
-    // 4. Verb konjugieren (de + xer + em = dexerem)
+    // Verb zusammenbauen
     let konjugiertesVerb = "";
-    if (verbEz && verbStems[verbEz]) {
-        konjugiertesVerb = "de" + verbStems[verbEz].toLowerCase() + subjektSuffix;
-    }
+    if (verbEz && verbStems[verbEz]) konjugiertesVerb = "de" + verbStems[verbEz].toLowerCase() + subjektSuffix;
 
-    // 5. Satzbau final zusammensetzen (SOV)
-    let finalerSatz = "";
-    if (istFrage) {
-        finalerSatz = `${konjugiertesVerb} ${objekt}`.trim();
-    } else {
-        finalerSatz = `${subjekt} ${objekt} ${konjugiertesVerb}`.trim();
-    }
-
-    // "Y"-Regel anwenden
-    finalerSatz = finalerSatz.replace(/([aeiouäöü])\s+([aeiouäöü])/gi, "$1 yi $2");
+    // Satzbau (SOV)
+    let finalerSatz = istFrage ? `${konjugiertesVerb} ${objekt}` : `${subjekt} ${objekt} ${konjugiertesVerb}`;
+    
+    // Y-Regel & Formatierung
+    finalerSatz = finalerSatz.trim().replace(/([aeiouäöü])\s+([aeiouäöü])/gi, "$1 yi $2");
     finalerSatz = finalerSatz.charAt(0).toUpperCase() + finalerSatz.slice(1);
 
     banner.style.display = "block";
-    sentenceDiv.innerText = finalerSatz;
+    sentenceDiv.innerText = finalerSatz || "[Wörter fehlen in Tabelle]";
 }
-
 </script>
+
 </body>
 </html>
