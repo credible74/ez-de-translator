@@ -1,709 +1,94 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>EZ-DE-TRANSLATOR PRO – Grammatik-Engine v3</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        :root {
-            --primary: #1d7efd;
-            --accent: #8f6fff;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --font-size: 16px;
-            --de-color: #4ade80;
-            --ez-color: #facc15;
-        }
-        body.oled {
-            --primary: #0ff;
-            --accent: #0aa;
-            --bg: #000;
-            --card: #111;
-            --text: #0ff;
-            --border: #055;
-            --de-color: #2ecc71;
-            --ez-color: #f1c40f;
-        }
-        body.lalish {
-            --primary: #b8860b;
-            --accent: #daa520;
-            --bg: #fff8e7;
-            --card: #fff0c0;
-            --text: #4a3600;
-            --border: #e0b84d;
-            --de-color: #2c6e2c;
-            --ez-color: #b85c00;
-        }
-        body {
-            font-family: system-ui, 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            font-size: var(--font-size);
-            transition: all 0.2s;
-            padding-bottom: 75px;
-        }
-        header {
-            background: var(--card);
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 2px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 20;
-        }
-        .logo {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: var(--primary);
-        }
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 1rem;
-            display: none;
-        }
-        .container.active {
-            display: block;
-        }
-        .card {
-            background: var(--card);
-            border-radius: 1.2rem;
-            padding: 1.2rem;
-            margin-bottom: 1.2rem;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        .badge {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            font-size: 0.7rem;
-            font-weight: bold;
-            padding: 0.2rem 0.8rem;
-            border-radius: 2rem;
-            margin-bottom: 0.6rem;
-        }
-        input, select, .range-input {
-            width: 100%;
-            padding: 0.7rem;
-            border-radius: 1rem;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            font-size: 1rem;
-            margin-top: 0.3rem;
-        }
-        button {
-            cursor: pointer;
-            background: var(--primary);
-            border: none;
-            color: white;
-            font-weight: bold;
-            border-radius: 2rem;
-            padding: 0.6rem 1.2rem;
-            transition: 0.2s;
-        }
-        button:hover {
-            background: var(--accent);
-        }
-        .result-card {
-            background: var(--card);
-            border-radius: 1rem;
-            padding: 1rem;
-            margin-top: 1rem;
-            border-left: 4px solid var(--primary);
-        }
-        .word-ez {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--ez-color);
-            margin: 0.3rem 0;
-        }
-        .word-de {
-            font-size: 1.2rem;
-            color: var(--de-color);
-            margin: 0.2rem 0;
-        }
-        .lang-badge {
-            display: inline-block;
-            background: var(--accent);
-            border-radius: 1rem;
-            padding: 0.1rem 0.5rem;
-            font-size: 0.7rem;
-            margin-right: 0.5rem;
-        }
-        .autocomplete-items {
-            background: var(--card);
-            border-radius: 1rem;
-            max-height: 200px;
-            overflow-y: auto;
-            position: absolute;
-            z-index: 10;
-            width: calc(100% - 2rem);
-        }
-        .autocomplete-item {
-            padding: 0.6rem;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border);
-        }
-        .autocomplete-item:hover {
-            background: var(--primary);
-            color: white;
-        }
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--card);
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-around;
-            padding: 0.5rem;
-            z-index: 20;
-        }
-        .nav-item {
-            background: none;
-            border: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-muted);
-            font-size: 1.2rem;
-            padding: 0.3rem;
-        }
-        .nav-item.active {
-            color: var(--primary);
-            border-bottom: 2px solid var(--primary);
-        }
-        .quiz-option {
-            width: 100%;
-            text-align: left;
-            background: var(--bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            margin: 0.5rem 0;
-            padding: 0.8rem;
-            border-radius: 1rem;
-        }
-        .quiz-option.correct {
-            background: #10b981;
-            color: white;
-        }
-        .quiz-option.wrong {
-            background: #ef4444;
-            color: white;
-        }
-        .sentence-banner {
-            background: var(--accent);
-            padding: 1rem;
-            border-radius: 1rem;
-            margin-top: 1rem;
-        }
-        .de-label {
-            display: inline-block;
-            background: #2c6e2c;
-            padding: 0.2rem 0.6rem;
-            border-radius: 1rem;
-            font-size: 0.7rem;
-            margin-right: 0.5rem;
-        }
-        .ez-label {
-            display: inline-block;
-            background: #b85c00;
-            padding: 0.2rem 0.6rem;
-            border-radius: 1rem;
-            font-size: 0.7rem;
-            margin-right: 0.5rem;
-        }
-    </style>
-</head>
-<body>
+// ------------- CONFIG & STORAGE -------------
+let translationExamples = []; // Hier landen deine Sätze aus dem Sheet
+const CSV_URL = "https://docs.google.com/spreadsheets/d/1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY/export?format=tsv";
 
-<header>
-    <div class="logo">🦚 EZ-DE-TRANSLATOR – Grammatik-Engine v3</div>
-</header>
+// API-Konfiguration (Hier trägst du deinen API-Schlüssel ein)
+const OPENAI_API_KEY = "DEIN_OPENAI_API_KEY"; 
 
-<!-- TAB 1: SUCHE & INTELLIGENTE ÜBERSETZUNG -->
-<div id="tab-search" class="container active">
-    <div class="card" style="text-align:center">
-        <span class="badge">📅 WORT DES TAGES</span>
-        <div class="word-ez" id="daily-ez">-</div>
-        <div class="word-de" id="daily-de">-</div>
-    </div>
-    <div class="card" style="position:relative">
-        <input type="text" id="searchInput" placeholder="Deutscher Satz oder Wort (auch mit Tippfehlern)" autocomplete="off">
-        <div id="autocomplete-list" class="autocomplete-items" style="display:none"></div>
-        <div id="sentence-banner" class="sentence-banner" style="display:none">
-            <div><span class="ez-label">Jesidisch</span> <strong>Übersetzung:</strong></div>
-            <div id="sentence-translation" style="font-size:1.2rem; font-weight:bold; margin-top:0.3rem; color:var(--ez-color);"></div>
-        </div>
-    </div>
-    <div id="search-results"></div>
-    <div id="wishlist-notify" class="card" style="display:none">
-        <p>🔔 Wort nicht gefunden? <button id="sendWishlistBtn">📝 Auf Wunschzettel setzen</button></p>
-    </div>
-</div>
-
-<!-- TAB 2: QUIZ -->
-<div id="tab-quiz" class="container">
-    <div class="card" style="text-align:center">
-        <span class="badge">🎮 VOKABEL-QUIZ</span>
-        <h2 id="quiz-question">Lade ...</h2>
-        <div id="quiz-options"></div>
-        <p id="quiz-feedback" style="margin-top:0.8rem;"></p>
-        <button id="nextQuizBtn">➡️ Nächstes Wort</button>
-    </div>
-</div>
-
-<!-- TAB 3: EINSTELLUNGEN -->
-<div id="tab-settings" class="container">
-    <div class="card">
-        <span class="badge">🎨 DESIGN & THEME</span>
-        <select id="themeSelect">
-            <option value="default">Klassisch Dark</option>
-            <option value="oled">OLED Schwarz</option>
-            <option value="lalish">Lalish Gold</option>
-        </select>
-        <label style="display:block; margin-top:1rem">🔠 Schriftgröße:</label>
-        <input type="range" id="fontSizeSlider" min="12" max="24" value="16">
-        <div id="fontSizeValue" style="text-align:center">16px</div>
-        <hr>
-        <button id="shareAppBtn">📤 App teilen</button>
-        <button id="resetBtn" style="margin-left:0.5rem; background:#64748b">🔄 Reset</button>
-        <p style="margin-top:1rem; font-size:0.8rem;">✨ Tippfehler werden automatisch korrigiert. Die Grammatik-Engine beherrscht Ergativ, Continuous, Perfekt, Futur, Komparativ & Superlativ.</p>
-    </div>
-</div>
-
-<nav class="nav-bar">
-    <button class="nav-item active" data-tab="search">🔍<span>Suche</span></button>
-    <button class="nav-item" data-tab="quiz">🎮<span>Quiz</span></button>
-    <button class="nav-item" data-tab="settings">⚙️<span>Einstellungen</span></button>
-</nav>
-
-<script>
-    // ------------- CONFIG & STORAGE -------------
-    let dictionary = {};        // Struktur: { ez: { de, type, gender, kasus_obliquus, ezife, transitive, v_pres_stem, v_past_stem, v_pres_prefix, v_cont_prefix, v_perf_part, pronoun_abs, pronoun_obl } }
-    let allEzWords = [];
-    const TSV_URL = "https://docs.google.com/spreadsheets/d/1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY/export?format=tsv";
-
-    // Zentrales Grammatik-Objekt für Personalendungen im Präsens und Präteritum
-    const GRAMMAR_RULES = {
-        verbs: {
-            "az":  { pres_end: "om",  past_end: "îm" },  // ich
-            "tu":  { pres_end: "î",   past_end: "î" },   // du
-            "aw":  { pres_end: "e",   past_end: "" },    // er/sie/es
-            "em":  { pres_end: "în",  past_end: "în" },  // wir
-            "hun": { pres_end: "in",  past_end: "in" },  // ihr
-            "gîst":{ pres_end: "in",  past_end: "in" }   // sie (Plural)
-        },
-        auxiliary_pres: { // Hilfsverb "sein" im Präsens
-            "az": "im", "tu": "î", "aw": "e", "em": "în", "hun": "in", "gîst": "in"
-        },
-        auxiliary_past: { // Hilfsverb "sein" im Präteritum (war / gewesen)
-            "az": "bûm", "tu": "bûyî", "aw": "bû", "em": "bûn", "hun": "bûn", "gîst": "bûn"
-        }
-    };
-
-    // ------------- DICTIONARY LOADER (SPALTEN A BIS R) -------------
-    async function loadDictionary() {
-        try {
-            const res = await fetch(TSV_URL);
-            if (!res.ok) throw new Error("Netzwerkfehler");
-            const text = await res.text();
-            const rows = text.split("\n").slice(1);
-            dictionary = {};
-            for (let row of rows) {
-                if (!row.trim()) continue;
-                const cols = row.split("\t");
-                if (cols.length >= 2 && cols[0].trim()) {
-                    const ez = cols[0].trim().toLowerCase();
-                    dictionary[ez] = {
-                        de: cols[1] ? cols[1].trim().toLowerCase() : "",
-                        type: cols[2] ? cols[2].trim().toLowerCase() : "noun",
-                        gender: cols[3] ? cols[3].trim().toLowerCase() : "m",
-                        kasus_obliquus: cols[4] ? cols[4].trim() : "",
-                        ezife: cols[5] ? cols[5].trim() : "",
-                        transitive: cols[6] ? cols[6].trim().toLowerCase() : "intransitiv",
-                        v_pres_stem: cols[7] ? cols[7].trim() : "",
-                        v_past_stem: cols[8] ? cols[8].trim() : "",
-                        v_pres_prefix: cols[9] ? cols[9].trim() : "di",
-                        v_cont_prefix: cols[10] ? cols[10].trim() : "di",
-                        v_perf_prefix: cols[12] ? cols[12].trim() : "",
-                        v_perf_part: cols[13] ? cols[13].trim() : "",
-                        pronoun_abs: cols[15] ? cols[15].trim().toLowerCase() : "",
-                        pronoun_obl: cols[16] ? cols[16].trim().toLowerCase() : ""
-                    };
-                }
-            }
-            if (Object.keys(dictionary).length === 0) throw new Error("Keine Daten");
-            localStorage.setItem("ez_dict_cache_v3", JSON.stringify(dictionary));
-        } catch(e) {
-            console.warn("Offline-Modus: Nutze lokalen Cache oder Fallback.");
-            const cached = localStorage.getItem("ez_dict_cache_v3");
-            if (cached) {
-                dictionary = JSON.parse(cached);
-            } else {
-                // Fallback minimal
-                dictionary = {
-                    "az": { de:"ich", type:"pronoun", gender:"m", kasus_obliquus:"", ezife:"", transitive:"intransitiv", v_pres_stem:"", v_past_stem:"", v_pres_prefix:"", v_cont_prefix:"", v_perf_part:"", pronoun_abs:"az", pronoun_obl:"min" },
-                    "xwarin": { de:"essen", type:"verb", gender:"", kasus_obliquus:"", ezife:"", transitive:"transitiv", v_pres_stem:"xw", v_past_stem:"xwar", v_pres_prefix:"di", v_cont_prefix:"di", v_perf_part:"xwariye", pronoun_abs:"", pronoun_obl:"" },
-                    "sêv": { de:"apfel", type:"noun", gender:"m", kasus_obliquus:"î", ezife:"ê", transitive:"", v_pres_stem:"", v_past_stem:"", v_pres_prefix:"", v_cont_prefix:"", v_perf_part:"", pronoun_abs:"", pronoun_obl:"" }
-                };
-            }
-        }
-        allEzWords = Object.keys(dictionary);
-        updateWordOfDay();
-        initQuiz();
-    }
-
-    // ------------- LEVENSHTEIN-DISTANZ (Tippfehler-Toleranz) -------------
-    function getLevenshteinDistance(a, b) {
-        const matrix = [];
-        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-        for (let i = 1; i <= b.length; i++) {
-            for (let j = 1; j <= a.length; j++) {
-                if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                    matrix[i][j] = matrix[i - 1][j - 1];
-                } else {
-                    matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
-                }
-            }
-        }
-        return matrix[b.length][a.length];
-    }
-
-    function findBestFlexMatch(inputWord) {
-        let cleanInput = inputWord.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
-        if (!cleanInput) return null;
-        for (let [ez, data] of Object.entries(dictionary)) {
-            if (ez === cleanInput || data.de === cleanInput) return { ez, data, distance: 0 };
-        }
-        let bestMatch = null;
-        let minDistance = 3;
-        for (let [ez, data] of Object.entries(dictionary)) {
-            let distEz = getLevenshteinDistance(cleanInput, ez);
-            let distDe = getLevenshteinDistance(cleanInput, data.de);
-            let currentMin = Math.min(distEz, distDe);
-            if (currentMin < minDistance) {
-                minDistance = currentMin;
-                bestMatch = { ez, data, distance: currentMin };
-            }
-        }
-        return bestMatch;
-    }
-
-    // ------------- DIE ERWEITERTE GRAMMATIK-ENGINE (SOV + ERGATIV) -------------
-    function translateSmartSentence(inputSentence) {
-        let clean = inputSentence.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
-        let words = clean.split(/\s+/);
+// ------------- DATA LOADER -------------
+async function loadTranslationData() {
+    try {
+        const res = await fetch(CSV_URL);
+        const text = await res.text();
+        const rows = text.split("\n").slice(1); // Überschriften überspringen
         
-        if (words.length === 1) {
-            let sampleMatch = findBestFlexMatch(words[0]);
-            return sampleMatch ? sampleMatch.ez : words[0];
-        }
-
-        let subjectKey = "aw";
-        let subjectData = null;
-        let objectEz = "";
-        let objectData = null;
-        let verbData = null;
-        let adjEz = "";
-        let adjData = null;
-        let conjunctionEz = "";
-        
-        let isPlural = words.includes("viele") || words.includes("alle") || (words.includes("die") && words.some(w => w.endsWith("e") && w !== "die")); 
-        let isIndefinite = words.includes("ein") || words.includes("eine") || words.includes("einen");
-        let isComparative = words.some(w => w.endsWith("er") && w.length > 3) || words.includes("mehr");
-        let isSuperlative = words.some(w => w.startsWith("am") || w.endsWith("ste") || w.endsWith("sten"));
-        
-        let isContinuous = words.includes("gerade") || words.includes("momentan");
-        let isFutur = words.includes("wird") || words.includes("werden") || words.includes("später");
-        let isPast = words.includes("war") || words.includes("hatte") || words.includes("hat") || words.includes("schon") || words.some(w => w.startsWith("ge") && w.length > 4);
-
-        // 1. Wörter klassifizieren
-        for (let word of words) {
-            let match = findBestFlexMatch(word);
-            if (match) {
-                switch(match.data.type) {
-                    case "pronoun":
-                        if (match.data.pronoun_abs) {
-                            subjectKey = match.data.pronoun_abs;
-                            subjectData = match.data;
-                        } else {
-                            objectEz = match.ez;
-                        }
-                        break;
-                    case "noun":
-                        objectEz = match.ez;
-                        objectData = match.data;
-                        break;
-                    case "verb":
-                        verbData = match.data;
-                        break;
-                    case "adjective":
-                        adjEz = match.ez;
-                        adjData = match.data;
-                        break;
-                    case "conjunction":
-                        conjunctionEz = match.ez;
-                        break;
-                }
-            }
-        }
-
-        // 2. Grammatik-Transformationen
-        if (objectEz && objectData) {
-            let currentGender = isPlural ? "p" : objectData.gender;
-            let suffix = objectData.kasus_obliquus || (currentGender === "f" ? "ê" : "î");
-            if (isIndefinite) {
-                objectEz = objectEz + "ek" + suffix;
-            } else if (isPlural) {
-                objectEz = objectEz + "an";
-            } else if (!isIndefinite && objectData.type === "noun") {
-                objectEz = objectEz + suffix;
-            }
-        }
-
-        if (adjEz && adjData && objectData) {
-            if (isComparative) adjEz = adjEz + "tir";
-            if (isSuperlative) adjEz = "herî " + adjEz;
-            let glue = objectData.ezife || (objectData.gender === "f" ? "a" : "ê");
-            if (isPlural) glue = "êt";
-            objectEz = `${objectEz} ${glue} ${adjEz}`;
-        }
-
-        // Ergativ: Wenn Vergangenheit UND transitiv
-        let finalSubject = subjectKey;
-        if (isPast && verbData && verbData.transitive === "transitiv" && subjectData && subjectData.pronoun_obl) {
-            finalSubject = subjectData.pronoun_obl;
-        }
-
-        let finalVerb = "";
-        if (verbData) {
-            if (isPast) {
-                if (verbData.v_perf_part) {
-                    let end = (verbData.transitive === "transitiv") ? "iye" : (GRAMMAR_RULES.auxiliary_pres[subjectKey] || "e");
-                    finalVerb = verbData.v_perf_part + end;
-                } else {
-                    let stem = verbData.v_past_stem || verbData.v_pres_stem;
-                    let end = (verbData.transitive === "transitiv") ? "" : (GRAMMAR_RULES.verbs[subjectKey]?.past_end || "");
-                    finalVerb = stem + end;
-                }
-            } else if (isFutur) {
-                let stem = verbData.v_pres_stem;
-                finalVerb = "bi" + stem + "ê";
-                if (subjectKey === "aw") finalSubject = "awê";
-            } else if (isContinuous) {
-                let prefix = verbData.v_cont_prefix || "di";
-                let stem = verbData.v_pres_stem;
-                let end = GRAMMAR_RULES.verbs[subjectKey]?.pres_end || "e";
-                finalVerb = prefix + stem + end;
-            } else {
-                let prefix = verbData.v_pres_prefix || "di";
-                let stem = verbData.v_pres_stem;
-                let end = GRAMMAR_RULES.verbs[subjectKey]?.pres_end || "e";
-                finalVerb = prefix + stem + end;
-            }
-        } else {
-            if (isPast) finalVerb = GRAMMAR_RULES.auxiliary_past[subjectKey] || "bû";
-            else finalVerb = GRAMMAR_RULES.auxiliary_pres[subjectKey] || "e";
-        }
-
-        let adverbEz = words.includes("später") ? "piştî re" : "";
-        let finalSentence = "";
-        if (conjunctionEz) finalSentence = `${finalSubject} ${objectEz} ${finalVerb}`;
-        else finalSentence = adverbEz ? `${finalSubject} ${adverbEz} ${objectEz} ${finalVerb}` : `${finalSubject} ${objectEz} ${finalVerb}`;
-        
-        finalSentence = finalSentence.trim().replace(/\s+/g, " ");
-        return finalSentence.charAt(0).toUpperCase() + finalSentence.slice(1);
-    }
-
-    // ------------- UI-LOGIK -------------
-    const searchInput = document.getElementById("searchInput");
-    const autocompleteList = document.getElementById("autocomplete-list");
-    let searchTimeout = null;
-
-    searchInput.addEventListener("input", function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(performSearch, 300);
-        const val = this.value.toLowerCase();
-        if (!val) { autocompleteList.style.display = "none"; return; }
-        const matches = allEzWords.filter(w => w.startsWith(val) || dictionary[w]?.de.startsWith(val)).slice(0, 5);
-        if (matches.length) {
-            autocompleteList.innerHTML = matches.map(m => `<div class="autocomplete-item" data-word="${m}">${m} ⇄ ${dictionary[m].de}</div>`).join("");
-            autocompleteList.style.display = "block";
-            document.querySelectorAll(".autocomplete-item").forEach(el => {
-                el.addEventListener("click", () => {
-                    searchInput.value = el.dataset.word;
-                    autocompleteList.style.display = "none";
-                    performSearch();
+        translationExamples = [];
+        for (let row of rows) {
+            const cols = row.split("\t"); 
+            if (cols.length >= 2 && cols[0].trim()) {
+                translationExamples.push({
+                    de: cols[0].trim(),
+                    ez: cols[1].trim()
                 });
-            });
-        } else autocompleteList.style.display = "none";
+            }
+        }
+        console.log(`${translationExamples.length} Lern-Beispiele geladen.`);
+    } catch(e) {
+        console.error("Fehler beim Laden der Satz-Datenbank:", e);
+    }
+}
+
+// ------------- KI ÜBERSETZUNG (AI ENGINE) -------------
+async function fetchAIWithLearning(userInput) {
+    // 1. Wir bauen den "Lehr-Prompt" aus deinen Tabellendaten
+    let promptInstruction = "Du bist ein professioneller Übersetzer für Jesidisch (Kurmanji). Übersetze den folgenden deutschen Satz präzise in das Jesidische. Nutze die folgenden Beispiele, um den korrekten Satzbau (SOV), den Split-Ergativ in der Vergangenheit und die Ezife-Konstruktion zu lernen. Antworte AUSSCHLIESSLICH mit dem übersetzten Satz, ohne Erklärungen.\n\n### BEISPIELE:\n";
+    
+    // Die ersten 30-50 Sätze aus deinem Sheet als Lernfutter anhängen
+    translationExamples.slice(0, 50).forEach(ex => {
+        promptInstruction += `Deutsch: ${ex.de} -> Jesidisch: ${ex.ez}\n`;
     });
-    document.addEventListener("click", (e) => { if(e.target !== searchInput) autocompleteList.style.display = "none"; });
+    
+    promptInstruction += `\n### AUFGABE:\nDeutsch: ${userInput} -> Jesidisch:`;
 
-    let lastSearchQuery = "";
-    async function performSearch() {
-        const query = searchInput.value.trim();
-        lastSearchQuery = query;
-        const resultsDiv = document.getElementById("search-results");
-        const banner = document.getElementById("sentence-banner");
-        const wishlistDiv = document.getElementById("wishlist-notify");
-
-        if (!query) {
-            resultsDiv.innerHTML = "";
-            banner.style.display = "none";
-            wishlistDiv.style.display = "none";
-            return;
-        }
-
-        const smartTranslation = translateSmartSentence(query);
-        document.getElementById("sentence-translation").innerHTML = smartTranslation;
-        banner.style.display = "block";
-
-        let bestMatch = findBestFlexMatch(query);
-        let html = "";
-        if (bestMatch) {
-            let ez = bestMatch.ez;
-            let data = bestMatch.data;
-            let note = bestMatch.distance > 0 ? `<br><small style="color:var(--accent)">🔍 Meintest du: ${ez} (Tippfehler korrigiert)</small>` : "";
-            html += `
-                <div class="result-card">
-                    <div class="flex-between">
-                        <div>
-                            <span class="badge">📖 ${data.type.toUpperCase()} ${data.gender ? `(${data.gender})` : ""}</span>
-                            <div class="word-ez"><span class="lang-badge" style="background:var(--ez-color);">Jesidisch</span> ${ez} ${note}</div>
-                            <div class="word-de"><span class="lang-badge" style="background:var(--de-color);">Deutsch</span> ${data.de}</div>
-                            ${data.transitive ? `<div>⚙️ Transitivität: ${data.transitive}</div>` : ""}
-                            ${data.v_pres_stem ? `<div>📌 Präsensstamm: ${data.v_pres_stem}</div>` : ""}
-                        </div>
-                        <div>
-                            <button onclick="playAudio('${data.de}')">🔊 DE</button>
-                            <button onclick="reportError('${ez}')">🚩</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            wishlistDiv.style.display = "none";
-        } else {
-            html = `<div class="result-card">❌ Kein passendes Wort gefunden. Die Satzübersetzung oben basiert auf der Grammatik-Engine.</div>`;
-            wishlistDiv.style.display = "block";
-        }
-        resultsDiv.innerHTML = html;
-    }
-
-    function playAudio(text) {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "de-DE";
-        speechSynthesis.cancel();
-        speechSynthesis.speak(u);
-    }
-    function reportError(word) {
-        window.location.href = `mailto:developer@example.com?subject=Fehler: ${word}&body=Bitte korrigieren: ${word}`;
-    }
-    function sendWishlist(word) {
-        window.location.href = `mailto:developer@example.com?subject=Wunschzettel&body=Fehlendes Wort/Satz: ${word}`;
-        alert(`„${word}“ wurde gemeldet. Danke!`);
-    }
-    document.getElementById("sendWishlistBtn")?.addEventListener("click", () => {
-        if(lastSearchQuery) sendWishlist(lastSearchQuery);
-    });
-
-    function updateWordOfDay() {
-        if (!allEzWords.length) return;
-        const idx = new Date().getDate() % allEzWords.length;
-        const ez = allEzWords[idx];
-        document.getElementById("daily-ez").innerText = ez;
-        document.getElementById("daily-de").innerText = dictionary[ez]?.de || "-";
-    }
-
-    function initQuiz() {
-        if (!allEzWords.length) return;
-        const correct = allEzWords[Math.floor(Math.random() * allEzWords.length)];
-        const correctDe = dictionary[correct].de;
-        let opts = [correctDe];
-        while(opts.length < 4) {
-            let rand = dictionary[allEzWords[Math.floor(Math.random() * allEzWords.length)]].de;
-            if(!opts.includes(rand)) opts.push(rand);
-        }
-        opts.sort(() => Math.random() - 0.5);
-        document.getElementById("quiz-question").innerHTML = `Was bedeutet <strong style="color:var(--primary)">${correct}</strong>?`;
-        const optsDiv = document.getElementById("quiz-options");
-        optsDiv.innerHTML = "";
-        document.getElementById("quiz-feedback").innerHTML = "";
-        opts.forEach(opt => {
-            const btn = document.createElement("button");
-            btn.className = "quiz-option";
-            btn.innerText = opt;
-            btn.onclick = () => {
-                const isCorrect = (opt === correctDe);
-                btn.classList.add(isCorrect ? "correct" : "wrong");
-                document.getElementById("quiz-feedback").innerHTML = isCorrect ? "✅ Richtig!" : `❌ Falsch! Richtig: ${correctDe}`;
-                document.querySelectorAll("#quiz-options button").forEach(b => b.disabled = true);
-            };
-            optsDiv.appendChild(btn);
+    // 2. Anfrage an die KI-Schnittstelle senden
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "gpt-4o-mini", // Kostengünstig, schnell und extrem smart
+                messages: [{ role: "user", content: promptInstruction }],
+                temperature: 0.2 // Niedrige Kreativität = präzisere Grammatik
+            })
         });
-    }
-    document.getElementById("nextQuizBtn")?.addEventListener("click", initQuiz);
 
-    // Themes & Schrift
-    function applyTheme(theme) {
-        document.body.classList.remove("oled","lalish");
-        if(theme === "oled") document.body.classList.add("oled");
-        if(theme === "lalish") document.body.classList.add("lalish");
-        localStorage.setItem("theme", theme);
+        const data = await response.json();
+        return data.choices[0].message.content.trim();
+    } catch (error) {
+        console.error("KI-Schnittstellen-Fehler:", error);
+        return "Übersetzung momentan nicht verfügbar.";
     }
-    function setFontSize(px) {
-        document.documentElement.style.setProperty("--font-size", px+"px");
-        document.getElementById("fontSizeValue").innerText = px+"px";
-        localStorage.setItem("fontSize", px);
-    }
-    const savedTheme = localStorage.getItem("theme") || "default";
-    applyTheme(savedTheme);
-    document.getElementById("themeSelect").value = savedTheme;
-    document.getElementById("themeSelect").addEventListener("change", e => applyTheme(e.target.value));
-    const savedFont = localStorage.getItem("fontSize") || "16";
-    document.getElementById("fontSizeSlider").value = savedFont;
-    setFontSize(savedFont);
-    document.getElementById("fontSizeSlider").addEventListener("input", e => setFontSize(e.target.value));
-    document.getElementById("shareAppBtn")?.addEventListener("click", () => {
-        if(navigator.share) navigator.share({title:"EZ-DE-Translator", text:"Lerne Jesidisch mit intelligenter Grammatik-Engine!", url:location.href});
-        else alert("App speichern oder teilen.");
-    });
-    document.getElementById("resetBtn")?.addEventListener("click", () => location.reload());
+}
 
-    // Tab Navigation
-    function switchTab(tabId) {
-        document.querySelectorAll(".container").forEach(c => c.classList.remove("active"));
-        document.getElementById(`tab-${tabId}`).classList.add("active");
-        document.querySelectorAll(".nav-item").forEach(btn => btn.classList.remove("active"));
-        document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add("active");
-        if(tabId === "quiz") initQuiz();
-    }
-    document.querySelectorAll(".nav-item").forEach(btn => {
-        btn.addEventListener("click", (e) => switchTab(btn.dataset.tab));
-    });
+// ------------- INTERFACE BINDUNG -------------
+const searchInput = document.getElementById("searchInput");
+let searchTimeout = null;
 
-    // Initialisierung
-    loadDictionary().then(() => {
-        performSearch();
-    });
-</script>
-</body>
-</html>
+searchInput.addEventListener("input", function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(performAiSearch, 500); // Etwas mehr Zeit beim Tippen lassen
+});
+
+async function performAiSearch() {
+    const query = searchInput.value.trim();
+    const banner = document.getElementById("sentence-banner");
+    const translationOutput = document.getElementById("sentence-translation");
+
+    if (!query) { banner.style.display = "none"; return; }
+
+    // Anzeige auf "lädt..." setzen
+    translationOutput.innerText = "⏳ KI übersetzt und lernt...";
+    banner.style.display = "block";
+
+    // KI-Übersetzung triggern
+    const result = await fetchAIWithLearning(query);
+    
+    // Ergebnis anzeigen
+    translationOutput.innerHTML = `⚡ ${result} <span style="font-size:0.7rem; opacity:0.7;">(AI Engine v4)</span>`;
+}
+
+// Start der App
+loadTranslationData();
