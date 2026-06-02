@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>EZ-DE-TRANSLATOR – KI-gestützt (OpenAI)</title>
+    <title>EZ-DE-TRANSLATOR – Lokale Baukasten-Engine</title>
     <style>
         * {
             box-sizing: border-box;
@@ -213,15 +213,6 @@
             border-radius: 1rem;
             margin-top: 1rem;
         }
-        .de-label, .ez-label {
-            display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 1rem;
-            font-size: 0.7rem;
-            margin-right: 0.5rem;
-        }
-        .de-label { background: #2c6e2c; color: white; }
-        .ez-label { background: #b85c00; color: white; }
         .warning {
             background: #f59e0b;
             color: #000;
@@ -235,12 +226,12 @@
 <body>
 
 <header>
-    <div class="logo">🦚 EZ-DE-TRANSLATOR – KI-Engine (OpenAI)</div>
+    <div class="logo">🦚 EZ-DE-TRANSLATOR – Baukasten-Engine (lokal)</div>
 </header>
 
-<!-- TAB 1: SUCHE & KI-ÜBERSETZUNG -->
+<!-- TAB 1: SUCHE & BAUKASTEN-ÜBERSETZUNG -->
 <div id="tab-search" class="container active">
-    <div id="apiWarning" class="warning" style="display:none;">⚠️ Kein gültiger OpenAI-API-Key gefunden. Nutze lokalen Fallback-Übersetzer.</div>
+    <div id="infoMsg" class="warning" style="display:none;">📚 Lade Daten aus Google Sheet ...</div>
     <div class="card" style="text-align:center">
         <span class="badge">📅 WORT DES TAGES</span>
         <div class="word-ez" id="daily-ez">-</div>
@@ -250,7 +241,7 @@
         <input type="text" id="searchInput" placeholder="Deutschen Satz eingeben ..." autocomplete="off">
         <div id="autocomplete-list" class="autocomplete-items" style="display:none"></div>
         <div id="sentence-banner" class="sentence-banner" style="display:none">
-            <div><span class="ez-label">Jesidisch (KI)</span> <strong>Übersetzung:</strong></div>
+            <div><span class="lang-badge" style="background:#b85c00;">Jesidisch (Baukasten)</span> <strong>Übersetzung:</strong></div>
             <div id="sentence-translation" style="font-size:1.2rem; font-weight:bold; margin-top:0.3rem; color:var(--ez-color); word-break:break-word;"></div>
         </div>
     </div>
@@ -283,7 +274,7 @@
         <hr>
         <button id="shareAppBtn">📤 App teilen</button>
         <button id="resetBtn">🔄 Reset</button>
-        <p style="margin-top:1rem; font-size:0.8rem;">✨ Die KI übersetzt mit GPT-4o-mini und lernt aus deinen Google-Sheets-Beispielen. Ergativ, Ezife, SOV werden automatisch beherrscht.</p>
+        <p style="margin-top:1rem; font-size:0.8rem;">✨ Die App lernt aus deinem Google Sheet (TSV). Neue Sätze und Wörter werden automatisch in die Baukasten-Engine übernommen – ganz ohne API.</p>
     </div>
 </div>
 
@@ -295,124 +286,159 @@
 
 <script>
     // ======================== KONFIGURATION ========================
-    // 🔴 TRAGE HIER DEINEN OPENAI API-KEY EIN (falls vorhanden)
-    const OPENAI_API_KEY = "DEIN_API_KEY";  // <-- Ersetzen!
-    
-    // Google Sheets TSV-Export (Spalten: Deutsch / Jesidisch / ...)
+    // Google Sheets TSV-Export (Spalten: Deutsch | Jesidisch | optional)
     const CSV_URL = "https://docs.google.com/spreadsheets/d/1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY/export?format=tsv";
     
-    let translationExamples = [];   // Lernbeispiele für Few-Shot-Prompting
-    let dictionary = {};            // Für Autocomplete & Quiz
+    let translationExamples = [];   // { de: "ich esse einen apfel", ez: "az sêvekê dixwom" }
+    let wordSwaps = {};             // { "ich": "az", "esse": "dixwom", "apfel": "sêv" ... }
+    let dictionary = {};            // Für Autocomplete & Quiz (Wortlisten)
     let allEzWords = [];
     
-    // ======================== DATEN LADEN ========================
-    async function loadData() {
+    // ======================== AUTOMATISIERTER DATEN-LOADER ========================
+    async function loadTranslationData() {
+        const infoDiv = document.getElementById("infoMsg");
+        infoDiv.style.display = "block";
+        infoDiv.innerText = "📚 Lade Daten aus Google Sheet ...";
         try {
             const res = await fetch(CSV_URL);
             if (!res.ok) throw new Error("Netzwerkfehler");
             const text = await res.text();
-            const rows = text.split("\n").slice(1);
+            const rows = text.split("\n").slice(1); // Kopfzeile überspringen
+            
             translationExamples = [];
+            wordSwaps = {};
             dictionary = {};
+            
             for (let row of rows) {
                 if (!row.trim()) continue;
                 const cols = row.split("\t");
                 if (cols.length >= 2 && cols[0].trim() && cols[1].trim()) {
-                    const de = cols[0].trim();
-                    const ez = cols[1].trim();
-                    translationExamples.push({ de, ez });
-                    dictionary[ez.toLowerCase()] = { de: de.toLowerCase(), type: "noun", gender: "m" };
+                    let deSentence = cols[0].trim().toLowerCase();
+                    let ezSentence = cols[1].trim();
+                    
+                    // 1. Satz für Mustererkennung speichern
+                    translationExamples.push({ de: deSentence, ez: ezSentence });
+                    
+                    // 2. Automatisch Wortpaare für den Baukasten lernen
+                    let deWords = deSentence.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").split(/\s+/);
+                    let ezWords = ezSentence.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").split(/\s+/);
+                    
+                    for (let i = 0; i < Math.min(deWords.length, ezWords.length); i++) {
+                        let deWord = deWords[i];
+                        let ezWord = ezWords[i];
+                        if (deWord && ezWord && !wordSwaps[deWord]) {
+                            wordSwaps[deWord] = ezWord;
+                        }
+                    }
+                    
+                    // 3. Auch Wörterbuch für Autocomplete füllen (jedes einzelne Ez-Wort als Schlüssel)
+                    for (let ezWord of ezWords) {
+                        if (ezWord && !dictionary[ezWord]) {
+                            dictionary[ezWord] = { de: deSentence, type: "auto" }; // deutsche Referenz
+                        }
+                    }
                 }
             }
-            if (translationExamples.length === 0) throw new Error("Keine Daten");
+            
+            // Fallback: Wenn keine Daten, minimale Basis
+            if (translationExamples.length === 0) {
+                throw new Error("Keine Daten geladen");
+            }
+            
             allEzWords = Object.keys(dictionary);
-            console.log(`${translationExamples.length} Lernbeispiele geladen.`);
-            localStorage.setItem("ez_dict_cache", JSON.stringify(dictionary));
+            infoDiv.style.display = "none";
+            console.log(`✅ ${translationExamples.length} Sätze und ${Object.keys(wordSwaps).length} Wortpaare geladen.`);
         } catch(e) {
-            console.warn("Fehler beim Laden, nutze Cache/Fallback:", e);
-            const cached = localStorage.getItem("ez_dict_cache");
-            if (cached) dictionary = JSON.parse(cached);
-            else dictionary = { "az": { de:"ich", type:"pronoun" }, "mader": { de:"mutter", type:"noun" } };
+            console.error("Fehler beim Laden:", e);
+            infoDiv.innerText = `⚠️ Fehler beim Laden: ${e.message}. Nutze Fallback-Daten.`;
+            infoDiv.style.background = "#f59e0b";
+            // Fallback mit ein paar Beispielen, damit die App funktioniert
+            translationExamples = [
+                { de: "ich esse einen apfel", ez: "az sêvekê dixwom" },
+                { de: "du gehst", ez: "tu diçî" },
+                { de: "er kommt", ez: "ew tê" }
+            ];
+            wordSwaps = { "ich": "az", "esse": "dixwom", "apfel": "sêv", "du": "tu", "gehst": "diçî", "er": "ew", "kommt": "tê" };
+            dictionary = { "az": { de: "ich" }, "sêvekê": { de: "apfel" }, "dixwom": { de: "esse" }, "tu": { de:"du" }, "diçî": { de:"gehst" }, "ew": { de:"er" }, "tê": { de:"kommt" } };
             allEzWords = Object.keys(dictionary);
         }
         updateWordOfDay();
         initQuiz();
+        // Nach dem Laden einmal Suche auslösen (falls schon Text)
+        performSearch();
     }
     
-    // ======================== KI-ÜBERSETZUNG (Few-Shot Prompting) ========================
-    let useAI = OPENAI_API_KEY && OPENAI_API_KEY !== "DEIN_API_KEY";
-    
-    async function translateWithAI(userInput) {
-        if (!useAI) {
-            document.getElementById("apiWarning").style.display = "block";
-            return fallbackTranslate(userInput);
-        }
-        // Prompt aufbauen mit maximal 50 Beispielen
-        let prompt = `Du bist ein professioneller Übersetzer für Jesidisch (Kurmanji). 
-Übersetze den folgenden deutschen Satz ins Jesidische. Behalte den korrekten Satzbau (SOV), den Split-Ergativ in der Vergangenheit und die Ezife-Konstruktion bei. 
-Antworte ausschließlich mit dem übersetzten Satz, ohne Erklärungen oder Anführungszeichen.
-
-Beispiele (Deutsch -> Jesidisch):
-`;
-        const examples = translationExamples.slice(0, 40);
-        for (let ex of examples) {
-            prompt += `Deutsch: ${ex.de} -> Jesidisch: ${ex.ez}\n`;
-        }
-        prompt += `\nDeutsch: ${userInput} -> Jesidisch:`;
+    // ======================== INTELLIGENTE BAUKASTEN-ÜBERSETZUNG ========================
+    // Findet den ähnlichsten Satz in den Beispielen (basierend auf Wort-Überlappung)
+    function findBestMatchingTemplate(inputSentence) {
+        let inputWords = inputSentence.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").split(/\s+/);
+        let bestMatch = null;
+        let bestOverlap = 0;
         
-        try {
-            const response = await fetch("https://api.openai.com/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${OPENAI_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: "gpt-4o-mini",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0.2,
-                    max_tokens: 150
-                })
-            });
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.error?.message || "API-Fehler");
+        for (let tmpl of translationExamples) {
+            let tmplWords = tmpl.de.split(/\s+/);
+            let overlap = inputWords.filter(w => tmplWords.includes(w)).length;
+            if (overlap > bestOverlap) {
+                bestOverlap = overlap;
+                bestMatch = tmpl;
             }
-            const data = await response.json();
-            let translation = data.choices[0].message.content.trim();
-            // Entferne mögliche Anführungszeichen
-            translation = translation.replace(/^["']|["']$/g, '');
-            return translation;
-        } catch (error) {
-            console.error("KI-Fehler:", error);
-            document.getElementById("apiWarning").style.display = "block";
-            document.getElementById("apiWarning").innerHTML = `⚠️ KI-Fehler: ${error.message}. Nutze Fallback.`;
-            useAI = false;
-            return fallbackTranslate(userInput);
         }
+        return bestMatch;
     }
     
-    // Einfacher Fallback (Wort-für-Wort aus Wörterbuch)
-    function fallbackTranslate(sentence) {
-        const words = sentence.toLowerCase().split(/\s+/);
-        let result = words.map(w => {
-            let match = Object.entries(dictionary).find(([ez, data]) => data.de === w || ez === w);
-            return match ? match[0] : w;
-        }).join(" ");
-        return result || "(Übersetzung nicht verfügbar)";
+    // Übersetzt einen neuen Satz durch Muster-Austausch
+    function translateWithPattern(inputSentence) {
+        let cleanInput = inputSentence.toLowerCase().trim();
+        if (!cleanInput) return "";
+        
+        // 1. Direkter Treffer in den Beispielen?
+        let exact = translationExamples.find(ex => ex.de === cleanInput);
+        if (exact) return exact.ez;
+        
+        // 2. Beste Vorlage finden
+        let template = findBestMatchingTemplate(cleanInput);
+        if (!template) {
+            // Fallback: Wort-für-Wort mit wordSwaps
+            let words = cleanInput.split(/\s+/);
+            let translated = words.map(w => wordSwaps[w] || w).join(" ");
+            return translated === cleanInput ? "(keine passende Vorlage)" : translated;
+        }
+        
+        // 3. Vorlage anwenden: Wörter austauschen
+        let inputWords = cleanInput.split(/\s+/);
+        let templateWords = template.de.split(/\s+/);
+        let resultWords = template.ez.split(/\s+/);
+        
+        // Für jede Position, an der sich das Input-Wort vom Template-Wort unterscheidet, ersetzen
+        for (let i = 0; i < inputWords.length; i++) {
+            if (i < templateWords.length && inputWords[i] !== templateWords[i]) {
+                // Versuche, das neue Wort zu übersetzen
+                let replacement = wordSwaps[inputWords[i]];
+                if (replacement && i < resultWords.length) {
+                    resultWords[i] = replacement;
+                } else if (wordSwaps[templateWords[i]] && inputWords[i] !== templateWords[i]) {
+                    // Falls das Template-Wort übersetzbar ist, aber das neue Wort unbekannt: überspringe
+                    // Sonst: behalte das alte Wort?
+                }
+            }
+        }
+        
+        // Falls die Längen unterschiedlich sind (z.B. Artikel), einfach anpassen
+        let translated = resultWords.join(" ");
+        return translated;
     }
     
-    // ======================== UI-LOGIK (Suche, Autocomplete, etc.) ========================
+    // ======================== UI-LOGIK ========================
     const searchInput = document.getElementById("searchInput");
     const autocompleteList = document.getElementById("autocomplete-list");
     let searchTimeout = null;
     
     searchInput.addEventListener("input", function() {
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(performSearch, 400);
+        searchTimeout = setTimeout(performSearch, 300);
         const val = this.value.toLowerCase();
         if (!val) { autocompleteList.style.display = "none"; return; }
-        const matches = allEzWords.filter(w => w.startsWith(val) || dictionary[w]?.de.startsWith(val)).slice(0, 5);
+        const matches = allEzWords.filter(w => w.startsWith(val) || (dictionary[w]?.de && dictionary[w].de.startsWith(val))).slice(0, 5);
         if (matches.length) {
             autocompleteList.innerHTML = matches.map(m => `<div class="autocomplete-item" data-word="${m}">${m} ⇄ ${dictionary[m].de}</div>`).join("");
             autocompleteList.style.display = "block";
@@ -439,17 +465,16 @@ Beispiele (Deutsch -> Jesidisch):
             return;
         }
         
-        // KI-Übersetzung anzeigen
-        translationDiv.innerHTML = "⏳ KI übersetzt ...";
+        // Übersetzung mit Baukasten
+        const translation = translateWithPattern(query);
+        translationDiv.innerHTML = translation;
         banner.style.display = "block";
-        const aiResult = await translateWithAI(query);
-        translationDiv.innerHTML = aiResult;
         
-        // Zusätzlich das beste Wort aus der Suche anzeigen (für Detailinfo)
+        // Zeige ggf. das beste passende Wort aus dem Wörterbuch an
         let bestMatch = null;
         for (let w of query.split(/\s+/)) {
-            let m = Object.entries(dictionary).find(([ez, data]) => data.de === w.toLowerCase() || ez === w.toLowerCase());
-            if (m) { bestMatch = m; break; }
+            let found = Object.entries(dictionary).find(([ez, data]) => data.de === w.toLowerCase() || ez === w.toLowerCase());
+            if (found) { bestMatch = found; break; }
         }
         if (bestMatch) {
             const [ez, data] = bestMatch;
@@ -466,7 +491,7 @@ Beispiele (Deutsch -> Jesidisch):
                 </div>
             `;
         } else {
-            resultsDiv.innerHTML = `<div class="result-card">ℹ️ Keine Wortdetails gefunden, aber die KI hat den Satz übersetzt.</div>`;
+            resultsDiv.innerHTML = `<div class="result-card">ℹ️ Keine Wortdetails gefunden. Die Übersetzung nutzt Satz-Muster.</div>`;
         }
     }
     
@@ -485,7 +510,6 @@ Beispiele (Deutsch -> Jesidisch):
         document.getElementById("daily-de").innerText = dictionary[ez]?.de || "-";
     }
     
-    // Quiz
     function initQuiz() {
         if (!allEzWords.length) return;
         const correct = allEzWords[Math.floor(Math.random() * allEzWords.length)];
@@ -536,7 +560,7 @@ Beispiele (Deutsch -> Jesidisch):
     setFontSize(savedFont);
     document.getElementById("fontSizeSlider").addEventListener("input", e => setFontSize(e.target.value));
     document.getElementById("shareAppBtn")?.addEventListener("click", () => {
-        if(navigator.share) navigator.share({title:"EZ-DE-Translator", text:"KI-gestützte Jesidisch-Übersetzung", url:location.href});
+        if(navigator.share) navigator.share({title:"EZ-DE-Translator", text:"Lokale Baukasten-Engine für Jesidisch", url:location.href});
         else alert("App speichern oder teilen.");
     });
     document.getElementById("resetBtn")?.addEventListener("click", () => location.reload());
@@ -553,10 +577,10 @@ Beispiele (Deutsch -> Jesidisch):
         btn.addEventListener("click", (e) => switchTab(btn.dataset.tab));
     });
     
-    // Start
-    loadData().then(() => {
-        if (!useAI) document.getElementById("apiWarning").style.display = "block";
-        performSearch();
+    // Start: Daten laden und dann bereit
+    loadTranslationData().then(() => {
+        // Eventuell initiale Suche (falls bereits Text im Feld)
+        if (searchInput.value.trim()) performSearch();
     });
 </script>
 </body>
