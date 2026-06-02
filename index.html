@@ -78,7 +78,7 @@
     const articles = ["der", "die", "das", "ein", "eine", "einer", "eines"];
 
     // Lädt die CSV-Datei anstelle der JSON-Datei
-    fetch('jesidisch.csv')
+    fetch('https://drive.google.com/file/d/10Qn3KRYpOpBOndSzMI2fWJVQQ40vG-Yi/view?usp=drivesdk')
         .then(r => r.text())
         .then(text => {
             const zeilen = text.split("\n");
