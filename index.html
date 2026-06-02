@@ -228,22 +228,103 @@
     function shareApp() {
         if (navigator.share) navigator.share({ title: 'EZ-DE-TRANSLATOR', url: window.location.href });
     }
-    function translateWithAI(text) {
+    f// Globale Variablen für die neuen Spaltenerweiterungen
+let verbStems = {};
+let wordGender = {};
+
+// Diese Zeile in deinem bestehenden fetch-Block anpassen, damit die neuen Spalten geladen werden:
+// (Ersetze den alten spalten-Teil im fetch durch das hier):
+/*
+const spalten = zeile.split(",");
+if (spalten.length >= 2) {
+    const ez = spalten[0].trim();
+    const de = spalten[1].trim();
+    dictionary[ez] = de;
+    if(spalten[2]) verbStems[ez] = spalten[2].trim(); // Spalte C
+    if(spalten[3]) wordGender[ez] = spalten[3].trim().toLowerCase(); // Spalte D
+}
+*/
+
+function translateWithAI(text) {
     const banner = document.getElementById('translation-banner');
     const sentenceDiv = document.getElementById('full-sentence');
     if (!text) { banner.style.display = "none"; return; }
 
-    const words = text.toLowerCase().replace(/[?!.,]/g, "").split(/\s+/);
-    let result = words.map(w => {
+    let inputLower = text.toLowerCase().replace(/[?!.,]/g, "");
+    let words = inputLower.split(/\s+/);
+    
+    // Grammatik-Variablen
+    let subjekt = "Az"; // Standard/Default
+    let subjektSuffix = "em";
+    let objekt = "";
+    let verbEz = "";
+    let istFrage = text.includes("?");
+
+    // 1. Subjekt & Personalpronomen erkennen
+    if (words.includes("ich")) { subjekt = "Az"; subjektSuffix = "em"; }
+    else if (words.includes("du")) { subjekt = "The"; subjektSuffix = "i"; }
+    else if (words.includes("er") || words.includes("sie") || words.includes("es")) { subjekt = "Aw"; subjektSuffix = "a"; }
+    else if (words.includes("ihr")) { subjekt = "Hoon"; subjektSuffix = "en"; }
+    else if (words.includes("wir")) { subjekt = "Am"; subjektSuffix = "en"; }
+    else if (words.includes("sie") && words.indexOf("sie") !== words.lastIndexOf("sie")) { subjekt = "Aw"; subjektSuffix = "en"; }
+
+    // 2. Wörter aus der Tabelle heraussuchen
+    words.forEach(w => {
+        // Artikel "einen/eine" überspringen, da sie als Suffix angehängt werden
+        if (w === "einen" || w === "eine") return;
+
         for (let ez in dictionary) {
-            if (ez.toLowerCase() === w) return dictionary[ez];
-            if (dictionary[ez].toLowerCase().split(" / ").includes(w)) return ez;
+            let deOptions = dictionary[ez].toLowerCase().split(" / ");
+            if (deOptions.includes(w)) {
+                // Unterscheidung: Ist es ein Verb oder Nomen?
+                if (verbStems[ez]) {
+                    verbEz = ez; // Es ist ein Verb
+                } else {
+                    objekt = ez; // Es ist ein Nomen (Objekt)
+                    // Nomen immer groß schreiben
+                    objekt = objekt.charAt(0).toUpperCase() + objekt.slice(1);
+                }
+                break;
+            }
         }
-        return `[${w}]`;
     });
 
+    // 3. Artikel-Suffixe (-axé / -án) und Genus-Regeln anwenden
+    if (objekt) {
+        let genus = wordGender[objekt.toLowerCase()] || "f"; // Standard f
+        
+        if (words.includes("einen") || words.includes("eine")) {
+            objekt += "axé";
+        } else if (words.includes("äpfel") || words.includes("flaschen") || words.includes("melonen")) { // Plural-Check grob
+            objekt += "án";
+        }
+    }
+
+    // 4. Verb konjugieren (Präfix de- + Stamm + Suffix)
+    let konjugiertesVerb = "";
+    if (verbEz && verbStems[verbEz]) {
+        konjugiertesVerb = "de" + verbStems[verbEz] + subjektSuffix;
+    }
+
+    // 5. Satzbau final zusammensetzen (SOV)
+    let finalerSatz = "";
+    
+    if (istFrage) {
+        // Frage-Struktur (z.B. I swhra Zabaš?)
+        finalerSatz = `${konjugiertesVerb} ${objekt}`.trim();
+    } else {
+        // Normaler Satzbau: Subjekt + Objekt + Verb
+        finalerSatz = `${subjekt} ${objekt} ${konjugiertesVerb}`.trim();
+    }
+
+    // "Y"-Regel anwenden (Wenn gleiche/ähnliche Vokale aufeinander treffen)
+    finalerSatz = finalerSatz.replace(/([aeiouäöü])\s+([aeiouäöü])/gi, "$1 yi $2");
+
+    // Erste Buchstabe des Satzes groß
+    finalerSatz = finalerSatz.charAt(0).toUpperCase() + finalerSatz.slice(1);
+
     banner.style.display = "block";
-    sentenceDiv.innerText = result.join(" ");
+    sentenceDiv.innerText = finalerSatz || "[Satzbau-Fehler: Wörter fehlen in Tabelle]";
 }
 
 </script>
