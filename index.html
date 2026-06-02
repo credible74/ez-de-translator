@@ -1,416 +1,602 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>EZ-DE-TRANSLATOR PRO</title>
-<style>
-  /* ------------------------
-     CSS Variablen für Themes
-  -------------------------*/
-  :root {
-    --primary: #1d7efd;
-    --accent: #8f6fff;
-    --bg: #0f172a;
-    --card: #1e293b;
-    --text: #f8fafc;
-    --border: #334155;
-    --font-size: 16px;
-  }
-  body.lalish {
-    --primary: #b58900;
-    --accent: #d29922;
-    --bg: #fff8dc;
-    --card: #fff0b3;
-    --text: #4a3700;
-    --border: #d2af45;
-  }
-  body.oled {
-    --primary: #0ff;
-    --accent: #0aa;
-    --bg: #000000;
-    --card: #111111;
-    --text: #00ffff;
-    --border: #005555;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>EZ-DE-TRANSLATOR PRO</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-  /* Global Styles */
-  body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
-    margin: 0; padding: 0;
-    font-size: var(--font-size);
-    transition: background-color 0.3s, color 0.3s;
-  }
-  header {
-    background-color: var(--card);
-    padding: 1rem;
-    text-align: center;
-    border-bottom: 1px solid var(--border);
-  }
-  header h1 {
-    margin: 0;
-    font-weight: 800;
-    color: var(--primary);
-    letter-spacing: 2px;
-  }
-  main {
-    max-width: 600px;
-    margin: 1rem auto;
-    padding: 0 1rem 5rem;
-  }
-  nav {
-    display: flex;
-    justify-content: space-around;
-    background: var(--card);
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    border-top: 1px solid var(--border);
-    padding: 0.5rem 0;
-    z-index: 10;
-  }
-  nav button {
-    background: none;
-    border: none;
-    color: var(--text);
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    padding: 0.5rem 0.8rem;
-    border-radius: 8px;
-    transition: background-color 0.3s;
-  }
-  nav button.active,
-  nav button:hover {
-    background-color: var(--primary);
-    color: var(--bg);
-  }
+        /* ----- BASIS-VARIABLEN (Theme: Klassisch Dark) ----- */
+        :root {
+            --primary: #1d7efd;
+            --accent: #8f6fff;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-size: 16px;
+            --transition: all 0.2s ease;
+        }
 
-  /* Common Card Style */
-  .card {
-    background-color: var(--card);
-    padding: 1rem;
-    border-radius: 12px;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
-  }
-  input[type="text"],
-  textarea,
-  select {
-    width: 100%;
-    box-sizing: border-box;
-    font-size: 1rem;
-    padding: 0.5rem;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
-    margin-top: 0.3rem;
-    margin-bottom: 1rem;
-  }
-  button.submit-btn {
-    background-color: var(--primary);
-    color: var(--bg);
-    border: none;
-    border-radius: 8px;
-    padding: 0.6rem 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  button.submit-btn:hover {
-    background-color: var(--accent);
-  }
+        /* Theme: OLED Schwarz */
+        body.oled {
+            --primary: #0ff;
+            --accent: #0aa;
+            --bg: #000000;
+            --card: #111111;
+            --text: #00ffff;
+            --text-muted: #0aaa;
+            --border: #005555;
+        }
 
-  /* Wort des Tages Styles */
-  .word-day {
-    text-align: center;
-  }
-  .word-day h2 {
-    font-size: 2rem;
-    margin-bottom: 0.3rem;
-    color: var(--accent);
-  }
-  .word-day audio {
-    margin-top: 0.5rem;
-    width: 100%;
-  }
+        /* Theme: Lalish Gold */
+        body.lalish {
+            --primary: #b8860b;
+            --accent: #daa520;
+            --bg: #fff8e7;
+            --card: #fff0c0;
+            --text: #4a3600;
+            --text-muted: #7a5a00;
+            --border: #e0b84d;
+        }
 
-  /* Wunschzettel Hinweis Style */
-  .wishlist-info {
-    background-color: var(--accent);
-    padding: 0.6rem;
-    border-radius: 10px;
-    color: var(--bg);
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-block;
-    margin-top: 0.5rem;
-  }
+        body {
+            font-family: system-ui, 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: var(--font-size);
+            transition: var(--transition);
+            padding-bottom: 75px;
+        }
 
-  /* Fehler melden Flag Icon */
-  .flag-btn {
-    float: right;
-    cursor: pointer;
-    font-size: 1.2rem;
-    color: var(--accent);
-  }
-  .flag-btn:hover {
-    color: var(--primary);
-  }
+        /* Header */
+        header {
+            background: var(--card);
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
 
-  /* Responsive Tabelle */
-  .table-container {
-    width: 100%;
-    overflow-x: auto;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 450px;
-  }
-  th, td {
-    border: 1px solid var(--border);
-    padding: 0.5rem;
-    text-align: left;
-  }
-  th {
-    background-color: var(--primary);
-    color: var(--bg);
-  }
-  tr:nth-child(even) {
-    background-color: var(--card);
-  }
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--primary);
+        }
 
-  /* Schriftgrößen-Regler Styles */
-  .font-slider-container {
-    margin: 1rem 0;
-  }
-  label[for="font-size"] {
-    display: block;
-    margin-bottom: 0.3rem;
-  }
-</style>
+        /* Container für Tabs */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: none;
+        }
+
+        .container.active {
+            display: block;
+        }
+
+        /* Cards & UI */
+        .card {
+            background: var(--card);
+            border-radius: 1.2rem;
+            padding: 1.2rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+            margin-bottom: 0.6rem;
+        }
+
+        input, select, .range-input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            margin-top: 0.3rem;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            cursor: pointer;
+            background: var(--primary);
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 2rem;
+            padding: 0.6rem 1.2rem;
+            transition: var(--transition);
+        }
+
+        button:hover {
+            background: var(--accent);
+            transform: scale(0.97);
+        }
+
+        .result-card {
+            background: var(--card);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .word-ez {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .quiz-option {
+            width: 100%;
+            text-align: left;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            margin: 0.5rem 0;
+            padding: 0.8rem;
+            border-radius: 1rem;
+        }
+
+        .quiz-option.correct {
+            background: #10b981;
+            color: white;
+        }
+
+        .quiz-option.wrong {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Navigationsleiste */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0.5rem 0.8rem;
+            backdrop-filter: blur(10px);
+            z-index: 20;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            padding: 0.3rem 0.8rem;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .nav-item span {
+            font-size: 0.7rem;
+            margin-top: 0.2rem;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flag-icon, .audio-icon {
+            font-size: 1.3rem;
+            background: none;
+            padding: 0.3rem;
+            margin-left: 0.5rem;
+        }
+
+        hr {
+            border-color: var(--border);
+            margin: 1rem 0;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>EZ-DE-TRANSLATOR PRO</h1>
-  </header>
 
-  <main>
-    <section id="tab-lernen" class="tab-content">
-      <div class="card">
-        <h2>Suchfeld & Wunschzettel</h2>
-        <input type="text" id="search-input" placeholder="Satz oder Wort eingeben ..." autocomplete="off" />
-        <div id="not-found-message" style="display:none; margin-top:0.5rem; color: var(--accent); font-weight: 700;">
-          Satz nicht gefunden? <span id="send-wishlist-btn" class="wishlist-info">Diesen Satz an Entwickler senden</span>
+<header>
+    <div class="logo">🦚 EZ-DE-TRANSLATOR PRO</div>
+</header>
+
+<!-- TAB 1: SUCHE & ÜBERSETZUNG -->
+<div id="tab-search" class="container active">
+    <!-- Wort des Tages -->
+    <div class="card" style="text-align: center;">
+        <span class="badge">📅 WORT DES TAGES</span>
+        <div class="word-ez" id="daily-ez">-</div>
+        <div id="daily-de" style="opacity:0.9;">-</div>
+    </div>
+
+    <div class="card">
+        <input type="text" id="searchInput" placeholder="Suche Wort oder Satz (z.B. Az mader)" autocomplete="off">
+        <div id="sentence-banner" style="margin-top: 0.8rem; background: var(--accent); padding: 0.8rem; border-radius: 1rem; display: none;">
+            <div style="font-weight: bold;">✍️ KI-Übersetzung (Jesidisch)</div>
+            <div id="sentence-translation" style="font-size: 1.2rem;"></div>
         </div>
-      </div>
-      <div class="card">
-        <h2>Fehler melden</h2>
-        <p>Klicke auf das 🚩 (Flaggen-Icon) neben einem Wort, um Fehler zu melden.</p>
-        <ul id="word-list">
-          <li>Beispielwort 1 <span class="flag-btn" data-word="Beispielwort 1" title="Fehler melden">🚩</span></li>
-          <li>Beispielwort 2 <span class="flag-btn" data-word="Beispielwort 2" title="Fehler melden">🚩</span></li>
-          <li>Beispielwort 3 <span class="flag-btn" data-word="Beispielwort 3" title="Fehler melden">🚩</span></li>
+    </div>
+
+    <div id="search-results"></div>
+    <div id="wishlist-notify" style="display: none;" class="card">
+        <p>🔔 Wort nicht gefunden? ➡️ <button id="sendWishlistBtn" style="background: var(--accent);">Auf Wunschzettel setzen</button></p>
+    </div>
+</div>
+
+<!-- TAB 2: QUIZ -->
+<div id="tab-quiz" class="container">
+    <div class="card" style="text-align: center;">
+        <span class="badge">🎮 VOKABEL-QUIZ</span>
+        <h2 id="quiz-question">Lade Frage...</h2>
+        <div id="quiz-options"></div>
+        <p id="quiz-feedback" style="margin-top: 1rem; font-weight: bold;"></p>
+        <button id="nextQuizBtn" style="margin-top: 0.8rem;">➡️ Nächstes Wort</button>
+    </div>
+</div>
+
+<!-- TAB 3: KULTUR (Feiertage + Heilige Orte) -->
+<div id="tab-kultur" class="container">
+    <div class="card">
+        <span class="badge">📅 JESIDISCHE FEIERTAGE</span>
+        <ul style="margin-top: 0.5rem; list-style: none;">
+            <li>🌸 <strong>Çarşema Sor</strong> – Roter Mittwoch (Neujahr, April)</li>
+            <li>🦚 <strong>Cejna Ezî</strong> – Fest zu Ehren von Sultan Ezid (Dezember)</li>
+            <li>🏔️ <strong>Mîra Cêma</strong> – Pilgerfest (Oktober)</li>
         </ul>
-      </div>
-    </section>
+    </div>
+    <div class="card">
+        <span class="badge">🏛️ HEILIGE ORTE</span>
+        <div style="margin-top: 0.5rem;">
+            <h3>🕋 Lalish (Laliş)</h3>
+            <p>Das zentrale Heiligtum der Jesiden im Nordirak, tiefste spirituelle Stätte.</p>
+            <h3>⛰️ Şengal (Sindschar)</h3>
+            <p>Historische Bergregion, Symbol des Widerstands und kulturelles Zentrum.</p>
+            <h3>🕯️ Tempel Ezid</h3>
+            <p>Weitere bedeutende Kultstätte mit besonderen Ritualen.</p>
+        </div>
+    </div>
+</div>
 
-    <section id="tab-wort-des-tages" class="tab-content" style="display:none;">
-      <div class="card word-day">
-        <h2 id="daily-word">Xezal (Schmetterling)</h2>
-        <p id="daily-example">"Ein Xezal fliegt durch den Garten."</p>
-        <audio controls>
-          <source src="audio/xezal.mp3" type="audio/mpeg" />
-          Ihr Browser unterstützt kein Audio. <a href="audio/xezal.mp3" download>Audio herunterladen</a>.
-        </audio>
-      </div>
-    </section>
-
-    <section id="tab-design" class="tab-content" style="display:none;">
-      <div class="card">
-        <h2>Theme auswählen</h2>
-        <select id="theme-select" aria-label="Thema auswählen">
-          <option value="default">Klassisch (Blau)</option>
-          <option value="lalish">Lalish-Gold</option>
-          <option value="oled">OLED-Schwarz</option>
+<!-- TAB 4: EINSTELLUNGEN / DESIGN -->
+<div id="tab-settings" class="container">
+    <div class="card">
+        <span class="badge">🎨 DESIGN & THEME</span>
+        <label><strong>Theme wählen:</strong></label>
+        <select id="themeSelect">
+            <option value="default">Klassisch Dark</option>
+            <option value="oled">OLED Schwarz</option>
+            <option value="lalish">Lalish Gold</option>
         </select>
-      </div>
-      <div class="card">
-        <h2>Schriftgröße anpassen</h2>
-        <div class="font-slider-container">
-          <label for="font-size">Schriftgröße: <span id="font-size-label">16</span> px</label>
-          <input
-            type="range"
-            min="12"
-            max="24"
-            value="16"
-            id="font-size"
-            aria-valuemin="12"
-            aria-valuemax="24"
-            aria-valuenow="16"
-          />
-        </div>
-      </div>
-    </section>
 
-    <section id="tab-kultur" class="tab-content" style="display:none;">
-      <div class="card">
-        <h2>Heilige Orte der Jesiden</h2>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Ort</th>
-                <th>Beschreibung</th>
-                <th>Aussprache</th>
-                <th>Bild</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Lalish</td>
-                <td>Wichtigster Wallfahrtsort der Jesiden im Nordirak</td>
-                <td>La-lish</td>
-                <td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Lalish_Temple_-_Panoramio.jpg/120px-Lalish_Temple_-_Panoramio.jpg" alt="Lalish Tempel" style="width:100px; border-radius:8px;" /></td>
-              </tr>
-              <tr>
-                <td>Şengal (Sindschar)</td>
-                <td>Historische Region und Zufluchtsort der Jesiden</td>
-                <td>Schengal</td>
-                <td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Sinjar_Mountains_2014.jpeg/120px-Sinjar_Mountains_2014.jpeg" alt="Şengal Berge" style="width:100px; border-radius:8px;" /></td>
-              </tr>
-              <tr>
-                <td>Tempel Ezid</td>
-                <td>Religiöse Stätte mit besonderer Bedeutung</td>
-                <td>Ezid</td>
-                <td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Lalish_Temple_Frontview_2011.jpg/120px-Lalish_Temple_Frontview_2011.jpg" alt="Tempel Ezid" style="width:100px; border-radius:8px;" /></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Jesidischer Feiertagskalender</h2>
-        <ul>
-          <li><strong>Çarşema Sor</strong> – Roter Mittwoch (jesidisches Neujahr)</li>
-          <li><strong>Cejna Ezî</strong> – Fest zu Ehren von Sultan Ezid</li>
-          <li><strong>Mîra Cêma</strong> – Pilgerfest</li>
-        </ul>
-      </div>
-    </section>
-  </main>
+        <label style="margin-top: 1rem; display: block;"><strong>🔠 Schriftgröße:</strong></label>
+        <input type="range" id="fontSizeSlider" min="12" max="24" value="16" class="range-input">
+        <div style="text-align: center;" id="fontSizeValue">16px</div>
 
-  <nav>
-    <button id="tab-btn-lernen" class="active" data-target="lernen">Lernen</button>
-    <button id="tab-btn-wort" data-target="wort-des-tages">Wort des Tages</button>
-    <button id="tab-btn-design" data-target="design">Design</button>
-    <button id="tab-btn-kultur" data-target="kultur">Kultur</button>
-  </nav>
+        <hr>
+        <button id="shareAppBtn">📤 App teilen</button>
+        <button id="resetBtn" style="margin-left: 0.5rem; background: #64748b;">🔄 Reset / Neuladen</button>
+    </div>
+    <div class="card">
+        <p>✨ Fehler melden: Klicke bei Suchergebnissen auf 🚩 und sende eine Mail.<br>
+        📝 Wunschzettel: Wenn ein Wort fehlt, erscheint ein Button – wir fügen es bald hinzu!</p>
+    </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-bar">
+    <button class="nav-item active" data-tab="search">🔍<span>Suche</span></button>
+    <button class="nav-item" data-tab="quiz">🎮<span>Quiz</span></button>
+    <button class="nav-item" data-tab="kultur">🦚<span>Kultur</span></button>
+    <button class="nav-item" data-tab="settings">⚙️<span>Einstellungen</span></button>
+</div>
 
 <script>
-  // Tab Navigation über Data-Attribute optimiert
-  const navButtons = document.querySelectorAll('nav button');
-  const tabContents = document.querySelectorAll('.tab-content');
+    // ======================= WÖRTERBUCH (Jesidisch ↔ Deutsch) =======================
+    const dictionary = {
+        "az": "ich",
+        "the": "du",
+        "aw": "er/sie/es",
+        "em": "wir",
+        "hoon": "ihr",
+        "mader": "Mutter",
+        "pader": "Vater",
+        "bira": "Bruder",
+        "xweşk": "Schwester",
+        "mal": "Haus",
+        "rojek": "Tag",
+        "şev": "Nacht",
+        "xweda": "Gott",
+        "ezid": "Jesid",
+        "pîroz": "heilig",
+        "heval": "Freund",
+        "xwendin": "lesen",
+        "nivîsîn": "schreiben",
+        "çûn": "gehen",
+        "hatin": "kommen",
+        "xwarin": "essen",
+        "vexwarin": "trinken"
+    };
+    // Verbstämme für KI-Übersetzung (vereinfacht)
+    const verbStems = {
+        "xwendin": "xwîn",
+        "nivîsîn": "nivîs",
+        "çûn": "ç",
+        "hatin": "hât",
+        "xwarin": "xwar",
+        "vexwarin": "vexwar"
+    };
 
-  navButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const targetTab = button.getAttribute('data-target');
-      
-      navButtons.forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
+    // Aktuell gesuchter Begriff (für Wunschzettel)
+    let lastSearchedText = "";
 
-      tabContents.forEach(content => {
-        if(content.id === `tab-${targetTab}`) {
-          content.style.display = 'block';
-        } else {
-          content.style.display = 'none';
+    // ----- HILFSFUNKTIONEN -----
+    function playAudio(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "de-DE";
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+    }
+
+    function reportError(word) {
+        const subject = `Fehler melden: ${word}`;
+        const body = `Bitte korrigieren Sie die Übersetzung oder das Wort "${word}".\n\nDanke!`;
+        window.location.href = `mailto:developer@example.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+
+    function sendWishlist(word) {
+        const subject = `Wunschzettel: Fehlendes Wort "${word}"`;
+        const body = `Das folgende Wort / der Satz wurde nicht gefunden: ${word}\nBitte ergänzen.`;
+        window.location.href = `mailto:developer@example.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        alert(`„${word}“ wurde auf die Wunschliste gesetzt. Vielen Dank!`);
+    }
+
+    // Wort des Tages (basierend auf aktuellem Tag)
+    function updateWordOfDay() {
+        const words = Object.keys(dictionary);
+        if (words.length === 0) return;
+        const dayIndex = new Date().getDate() % words.length;
+        const ezWord = words[dayIndex];
+        document.getElementById("daily-ez").innerText = ezWord;
+        document.getElementById("daily-de").innerText = dictionary[ezWord];
+    }
+
+    // KI-Übersetzung (simple Satzstruktur)
+    function translateSentence(germanText) {
+        let words = germanText.toLowerCase().split(/\s+/);
+        let subj = "Az", suffix = "em";
+        if (words.includes("du") || words.includes("the")) { subj = "The"; suffix = "i"; }
+        else if (words.includes("er") || words.includes("sie") || words.includes("es") || words.includes("aw")) { subj = "Aw"; suffix = "a"; }
+        else if (words.includes("wir") || words.includes("em")) { subj = "Em"; suffix = "în"; }
+        else if (words.includes("ihr") || words.includes("hoon")) { subj = "Hoon"; suffix = "in"; }
+
+        let foundVerb = "", object = "";
+        for (let w of words) {
+            for (let ez in dictionary) {
+                if (dictionary[ez].toLowerCase() === w || ez === w) {
+                    if (verbStems[ez]) foundVerb = ez;
+                    else object = ez;
+                    break;
+                }
+            }
         }
-      });
-    });
-  });
-
-  // Suchfeld & Wunschzettel
-  const searchInput = document.getElementById('search-input');
-  const notFoundMessage = document.getElementById('not-found-message');
-  const sendWishlistBtn = document.getElementById('send-wishlist-btn');
-
-  const knownWords = ['Hallo', 'Danke', 'Jesidisch', 'Lalish', 'Xezal'];
-
-  searchInput.addEventListener('input', () => {
-    const text = searchInput.value.trim();
-    if(text.length === 0) {
-      notFoundMessage.style.display = 'none';
-      return;
+        if (object && words.some(w => w === "einen" || w === "eine")) object += "ekî";
+        let conjugated = "";
+        if (foundVerb && verbStems[foundVerb]) {
+            let stem = verbStems[foundVerb];
+            conjugated = stem + suffix;
+        }
+        let result = `${subj} ${object} ${conjugated}`.trim().replace(/\s+/g, " ");
+        return result.charAt(0).toUpperCase() + result.slice(1);
     }
-    if(!knownWords.some(w => w.toLowerCase() === text.toLowerCase())) {
-      notFoundMessage.style.display = 'block';
-    } else {
-      notFoundMessage.style.display = 'none';
+
+    // Suche & Ergebnisse anzeigen
+    function performSearch() {
+        const query = document.getElementById("searchInput").value.trim();
+        lastSearchedText = query;
+        const resultsDiv = document.getElementById("search-results");
+        const bannerDiv = document.getElementById("sentence-banner");
+        const wishlistDiv = document.getElementById("wishlist-notify");
+
+        if (!query) {
+            resultsDiv.innerHTML = "";
+            bannerDiv.style.display = "none";
+            wishlistDiv.style.display = "none";
+            return;
+        }
+
+        // Satzübersetzung anzeigen
+        const ezSentence = translateSentence(query);
+        document.getElementById("sentence-translation").innerText = ezSentence;
+        bannerDiv.style.display = "block";
+
+        // Wort-für-Wort-Suche
+        const searchWords = query.toLowerCase().split(/\s+/);
+        let foundAny = false;
+        let html = "";
+
+        searchWords.forEach(word => {
+            let matched = false;
+            for (let [ez, de] of Object.entries(dictionary)) {
+                if (ez === word || de.toLowerCase() === word || (de.toLowerCase().includes(word) && word.length > 2)) {
+                    html += `
+                        <div class="result-card">
+                            <div class="flex-between">
+                                <div>
+                                    <span class="badge">📖 VOKABEL</span>
+                                    <div class="word-ez">${ez}</div>
+                                    <div>${de}</div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="audio-icon" onclick="playAudio('${de}')">🔊</button>
+                                    <button class="flag-icon" onclick="reportError('${ez}')">🚩</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    matched = true;
+                    foundAny = true;
+                }
+            }
+            if (!matched && word.length > 2 && !["der","die","das","ein","eine","einer"].includes(word)) {
+                html += `<div class="result-card">❌ Kein Eintrag für „${word}“ gefunden. Klicke unten auf „Wunschzettel“.</div>`;
+            }
+        });
+
+        if (!foundAny) {
+            html = `<div class="result-card">😞 Keine Übersetzung gefunden. Hilf uns, die App zu verbessern – nutze den Wunschzettel!</div>`;
+            wishlistDiv.style.display = "block";
+        } else {
+            wishlistDiv.style.display = "none";
+        }
+        resultsDiv.innerHTML = html;
     }
-  });
 
-  // Hilfsfunktion für sicheren Mailversand
-  function sendMail(subject, body) {
-    const mailtoLink = `mailto:developer@example.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    const a = document.createElement('a');
-    a.href = mailtoLink;
-    a.target = '_blank';
-    a.click();
-  }
+    // ----- QUIZ LOGIC -----
+    let currentQuizWord = "";
+    function initQuiz() {
+        const words = Object.keys(dictionary);
+        if (words.length < 4) return;
+        const correctWord = words[Math.floor(Math.random() * words.length)];
+        currentQuizWord = correctWord;
+        const correctTrans = dictionary[correctWord];
+        let options = [correctTrans];
+        while (options.length < 4) {
+            let rand = dictionary[words[Math.floor(Math.random() * words.length)]];
+            if (!options.includes(rand)) options.push(rand);
+        }
+        options.sort(() => Math.random() - 0.5);
 
-  sendWishlistBtn.addEventListener('click', () => {
-    const text = searchInput.value.trim();
-    if(text.length === 0) return alert('Bitte zuerst einen Satz eingeben!');
-    sendMail('Wunschzettel - neuer Satz', text);
-  });
+        document.getElementById("quiz-question").innerHTML = `Was bedeutet <strong style="color:var(--primary)">${correctWord}</strong>?`;
+        const optsDiv = document.getElementById("quiz-options");
+        optsDiv.innerHTML = "";
+        document.getElementById("quiz-feedback").innerHTML = "";
 
-  // Fehler melden
-  document.querySelectorAll('.flag-btn').forEach(flagBtn => {
-    flagBtn.addEventListener('click', () => {
-      const word = flagBtn.dataset.word;
-      if(confirm(`Fehler für das Wort "${word}" melden?`)) {
-        sendMail(`Fehler Meldung - ${word}`, `Ich habe einen Fehler beim Wort "${word}" entdeckt.`);
-      }
+        options.forEach(opt => {
+            const btn = document.createElement("button");
+            btn.className = "quiz-option";
+            btn.innerText = opt;
+            btn.onclick = () => {
+                const isCorrect = (opt === correctTrans);
+                if (isCorrect) {
+                    btn.classList.add("correct");
+                    document.getElementById("quiz-feedback").innerHTML = "✅ Richtig! Gut gemacht!";
+                } else {
+                    btn.classList.add("wrong");
+                    document.getElementById("quiz-feedback").innerHTML = `❌ Falsch! Richtig wäre: ${correctTrans}`;
+                }
+                // Alle Buttons deaktivieren
+                document.querySelectorAll("#quiz-options button").forEach(b => b.disabled = true);
+            };
+            optsDiv.appendChild(btn);
+        });
+    }
+
+    // ----- THEMES & SCHRIFTGRÖSSE -----
+    function applyTheme(theme) {
+        document.body.classList.remove("oled", "lalish");
+        if (theme === "oled") document.body.classList.add("oled");
+        else if (theme === "lalish") document.body.classList.add("lalish");
+        localStorage.setItem("theme", theme);
+    }
+
+    function setFontSize(px) {
+        document.documentElement.style.setProperty("--font-size", px + "px");
+        document.getElementById("fontSizeValue").innerText = px + "px";
+        localStorage.setItem("fontSize", px);
+    }
+
+    // ----- TAB NAVIGATION -----
+    function switchTab(tabId) {
+        document.querySelectorAll(".container").forEach(container => container.classList.remove("active"));
+        document.getElementById(`tab-${tabId}`).classList.add("active");
+        document.querySelectorAll(".nav-item").forEach(btn => btn.classList.remove("active"));
+        document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add("active");
+        if (tabId === "quiz") initQuiz();  // Quiz neu laden
+    }
+
+    // ----- SHARE & RESET -----
+    function shareApp() {
+        if (navigator.share) navigator.share({ title: "EZ-DE-Translator", text: "Jesidisch-Deutsch Wörterbuch & Kultur-App", url: window.location.href });
+        else alert("Teile diese App: Speichere die HTML-Datei oder sende den Link weiter.");
+    }
+
+    // ----- EVENT LISTENER & INIT -----
+    document.addEventListener("DOMContentLoaded", () => {
+        updateWordOfDay();
+
+        // Suchfeld
+        const searchInput = document.getElementById("searchInput");
+        searchInput.addEventListener("input", () => performSearch());
+        
+        // Wunschzettel Button
+        document.getElementById("sendWishlistBtn")?.addEventListener("click", () => {
+            if (lastSearchedText) sendWishlist(lastSearchedText);
+            else alert("Bitte zuerst einen Begriff eingeben.");
+        });
+
+        // Quiz
+        document.getElementById("nextQuizBtn")?.addEventListener("click", () => initQuiz());
+        
+        // Theme & Schrift
+        const savedTheme = localStorage.getItem("theme") || "default";
+        applyTheme(savedTheme);
+        document.getElementById("themeSelect").value = savedTheme;
+        document.getElementById("themeSelect").addEventListener("change", (e) => applyTheme(e.target.value));
+
+        const savedFont = localStorage.getItem("fontSize") || "16";
+        document.getElementById("fontSizeSlider").value = savedFont;
+        setFontSize(savedFont);
+        document.getElementById("fontSizeSlider").addEventListener("input", (e) => setFontSize(e.target.value));
+
+        // Teilen & Reset
+        document.getElementById("shareAppBtn")?.addEventListener("click", shareApp);
+        document.getElementById("resetBtn")?.addEventListener("click", () => location.reload());
+
+        // Navigation
+        document.querySelectorAll(".nav-item").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const tab = btn.getAttribute("data-tab");
+                if (tab) switchTab(tab);
+            });
+        });
+
+        // Standard: Quiz initialisieren
+        initQuiz();
     });
-  });
-
-  // Theme Auswahl
-  const themeSelect = document.getElementById('theme-select');
-  const savedTheme = localStorage.getItem('theme') || 'default';
-  applyTheme(savedTheme);
-  themeSelect.value = savedTheme;
-
-  themeSelect.addEventListener('change', () => {
-    applyTheme(themeSelect.value);
-    localStorage.setItem('theme', themeSelect.value);
-  });
-
-  function applyTheme(theme) {
-    document.body.classList.remove('lalish', 'oled');
-    if(theme === 'lalish') document.body.classList.add('lalish');
-    if(theme === 'oled') document.body.classList.add('oled');
-  }
-
-  // Schriftgrößenregler
-  const fontSlider = document.getElementById('font-size');
-  const fontLabel = document.getElementById('font-size-label');
-
-  const savedFontSize = localStorage.getItem('fontSize') || '16';
-  fontSlider.value = savedFontSize;
-  fontLabel.textContent = savedFontSize;
-  document.documentElement.style.setProperty('--font-size', savedFontSize + 'px');
-
-  fontSlider.addEventListener('input', () => {
-    const size = fontSlider.value;
-    fontLabel.textContent = size;
-    document.documentElement.style.setProperty('--font-size', size + 'px');
-    localStorage.setItem('fontSize', size);
-  });
 </script>
 </body>
 </html>
