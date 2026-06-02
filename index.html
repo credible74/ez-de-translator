@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>EZ-DE-TRANSLATOR PRO</title>
+    <title>EZ-DE-TRANSLATOR PRO – mit Community</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-
-        /* ----- BASIS-VARIABLEN (Theme: Klassisch Dark) ----- */
         :root {
             --primary: #1d7efd;
             --accent: #8f6fff;
@@ -21,41 +19,31 @@
             --text-muted: #94a3b8;
             --border: #334155;
             --font-size: 16px;
-            --transition: all 0.2s ease;
         }
-
-        /* Theme: OLED Schwarz */
         body.oled {
             --primary: #0ff;
             --accent: #0aa;
-            --bg: #000000;
-            --card: #111111;
-            --text: #00ffff;
-            --text-muted: #0aaa;
-            --border: #005555;
+            --bg: #000;
+            --card: #111;
+            --text: #0ff;
+            --border: #055;
         }
-
-        /* Theme: Lalish Gold */
         body.lalish {
             --primary: #b8860b;
             --accent: #daa520;
             --bg: #fff8e7;
             --card: #fff0c0;
             --text: #4a3600;
-            --text-muted: #7a5a00;
             --border: #e0b84d;
         }
-
         body {
-            font-family: system-ui, 'Inter', -apple-system, sans-serif;
+            font-family: system-ui, 'Inter', sans-serif;
             background: var(--bg);
             color: var(--text);
             font-size: var(--font-size);
-            transition: var(--transition);
-            padding-bottom: 75px;
+            transition: all 0.2s;
+            padding-bottom: 80px;
         }
-
-        /* Header */
         header {
             background: var(--card);
             padding: 1rem;
@@ -63,29 +51,22 @@
             border-bottom: 2px solid var(--border);
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 20;
         }
-
         .logo {
             font-size: 1.3rem;
             font-weight: 800;
-            letter-spacing: 2px;
             color: var(--primary);
         }
-
-        /* Container für Tabs */
         .container {
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
             padding: 1rem;
             display: none;
         }
-
         .container.active {
             display: block;
         }
-
-        /* Cards & UI */
         .card {
             background: var(--card);
             border-radius: 1.2rem;
@@ -94,7 +75,6 @@
             border: 1px solid var(--border);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-
         .badge {
             display: inline-block;
             background: var(--primary);
@@ -105,23 +85,16 @@
             border-radius: 2rem;
             margin-bottom: 0.6rem;
         }
-
-        input, select, .range-input {
+        input, select, textarea, .range-input {
             width: 100%;
-            padding: 0.8rem;
+            padding: 0.7rem;
             border-radius: 1rem;
             border: 1px solid var(--border);
             background: var(--bg);
             color: var(--text);
             font-size: 1rem;
-            outline: none;
             margin-top: 0.3rem;
         }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-        }
-
         button {
             cursor: pointer;
             background: var(--primary);
@@ -130,14 +103,11 @@
             font-weight: bold;
             border-radius: 2rem;
             padding: 0.6rem 1.2rem;
-            transition: var(--transition);
+            transition: 0.2s;
         }
-
         button:hover {
             background: var(--accent);
-            transform: scale(0.97);
         }
-
         .result-card {
             background: var(--card);
             border-radius: 1rem;
@@ -145,35 +115,39 @@
             margin-top: 1rem;
             border-left: 4px solid var(--primary);
         }
-
         .word-ez {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: var(--primary);
         }
-
-        .quiz-option {
-            width: 100%;
-            text-align: left;
-            background: var(--bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            margin: 0.5rem 0;
-            padding: 0.8rem;
+        .autocomplete-items {
+            background: var(--card);
             border-radius: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            position: absolute;
+            z-index: 10;
+            width: calc(100% - 2rem);
         }
-
-        .quiz-option.correct {
-            background: #10b981;
+        .autocomplete-item {
+            padding: 0.6rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+        .autocomplete-item:hover {
+            background: var(--primary);
             color: white;
         }
-
-        .quiz-option.wrong {
-            background: #ef4444;
-            color: white;
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        /* Navigationsleiste */
+        .wiki-img {
+            max-width: 100%;
+            border-radius: 1rem;
+            margin-top: 0.8rem;
+        }
         .nav-bar {
             position: fixed;
             bottom: 0;
@@ -183,11 +157,9 @@
             border-top: 1px solid var(--border);
             display: flex;
             justify-content: space-around;
-            padding: 0.5rem 0.5rem 0.8rem;
-            backdrop-filter: blur(10px);
+            padding: 0.5rem;
             z-index: 20;
         }
-
         .nav-item {
             background: none;
             border: none;
@@ -196,83 +168,67 @@
             align-items: center;
             color: var(--text-muted);
             font-size: 1.2rem;
-            padding: 0.3rem 0.8rem;
+            padding: 0.3rem;
         }
-
         .nav-item.active {
             color: var(--primary);
             border-bottom: 2px solid var(--primary);
         }
-
-        .nav-item span {
-            font-size: 0.7rem;
-            margin-top: 0.2rem;
+        .chat-message {
+            background: var(--bg);
+            padding: 0.5rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
         }
-
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .flag-icon, .audio-icon {
-            font-size: 1.3rem;
-            background: none;
-            padding: 0.3rem;
-            margin-left: 0.5rem;
-        }
-
-        hr {
-            border-color: var(--border);
-            margin: 1rem 0;
+        .chat-name {
+            font-weight: bold;
+            color: var(--accent);
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo">🦚 EZ-DE-TRANSLATOR PRO</div>
+    <div class="logo">🦚 EZ-DE-TRANSLATOR PRO + COMMUNITY</div>
 </header>
 
-<!-- TAB 1: SUCHE & ÜBERSETZUNG -->
+<!-- TAB 1: SUCHE + ÜBERSETZUNG -->
 <div id="tab-search" class="container active">
-    <!-- Wort des Tages -->
-    <div class="card" style="text-align: center;">
+    <div class="card" style="text-align:center">
         <span class="badge">📅 WORT DES TAGES</span>
         <div class="word-ez" id="daily-ez">-</div>
-        <div id="daily-de" style="opacity:0.9;">-</div>
+        <div id="daily-de">-</div>
     </div>
-
-    <div class="card">
-        <input type="text" id="searchInput" placeholder="Suche Wort oder Satz (z.B. Az mader)" autocomplete="off">
-        <div id="sentence-banner" style="margin-top: 0.8rem; background: var(--accent); padding: 0.8rem; border-radius: 1rem; display: none;">
-            <div style="font-weight: bold;">✍️ KI-Übersetzung (Jesidisch)</div>
-            <div id="sentence-translation" style="font-size: 1.2rem;"></div>
+    <div class="card" style="position:relative">
+        <input type="text" id="searchInput" placeholder="Wort oder Satz auf Deutsch / Jesidisch ..." autocomplete="off">
+        <div id="autocomplete-list" class="autocomplete-items" style="display:none"></div>
+        <div id="sentence-banner" style="margin-top:0.8rem; background:var(--accent); padding:0.8rem; border-radius:1rem; display:none">
+            <strong>📖 Satzübersetzung (Jesidisch):</strong>
+            <div id="sentence-translation" style="font-size:1.1rem"></div>
         </div>
     </div>
-
     <div id="search-results"></div>
-    <div id="wishlist-notify" style="display: none;" class="card">
-        <p>🔔 Wort nicht gefunden? ➡️ <button id="sendWishlistBtn" style="background: var(--accent);">Auf Wunschzettel setzen</button></p>
+    <div id="wishlist-notify" class="card" style="display:none">
+        <p>🔔 Wort nicht gefunden? <button id="sendWishlistBtn">📝 Auf Wunschzettel setzen</button></p>
     </div>
 </div>
 
 <!-- TAB 2: QUIZ -->
 <div id="tab-quiz" class="container">
-    <div class="card" style="text-align: center;">
+    <div class="card" style="text-align:center">
         <span class="badge">🎮 VOKABEL-QUIZ</span>
-        <h2 id="quiz-question">Lade Frage...</h2>
+        <h2 id="quiz-question">Lade ...</h2>
         <div id="quiz-options"></div>
-        <p id="quiz-feedback" style="margin-top: 1rem; font-weight: bold;"></p>
-        <button id="nextQuizBtn" style="margin-top: 0.8rem;">➡️ Nächstes Wort</button>
+        <p id="quiz-feedback"></p>
+        <button id="nextQuizBtn">➡️ Nächstes Wort</button>
     </div>
 </div>
 
-<!-- TAB 3: KULTUR (Feiertage + Heilige Orte) -->
+<!-- TAB 3: KULTUR (Feiertage & Orte) -->
 <div id="tab-kultur" class="container">
     <div class="card">
         <span class="badge">📅 JESIDISCHE FEIERTAGE</span>
-        <ul style="margin-top: 0.5rem; list-style: none;">
+        <ul style="margin-top:0.5rem">
             <li>🌸 <strong>Çarşema Sor</strong> – Roter Mittwoch (Neujahr, April)</li>
             <li>🦚 <strong>Cejna Ezî</strong> – Fest zu Ehren von Sultan Ezid (Dezember)</li>
             <li>🏔️ <strong>Mîra Cêma</strong> – Pilgerfest (Oktober)</li>
@@ -280,322 +236,307 @@
     </div>
     <div class="card">
         <span class="badge">🏛️ HEILIGE ORTE</span>
-        <div style="margin-top: 0.5rem;">
-            <h3>🕋 Lalish (Laliş)</h3>
-            <p>Das zentrale Heiligtum der Jesiden im Nordirak, tiefste spirituelle Stätte.</p>
-            <h3>⛰️ Şengal (Sindschar)</h3>
-            <p>Historische Bergregion, Symbol des Widerstands und kulturelles Zentrum.</p>
-            <h3>🕯️ Tempel Ezid</h3>
-            <p>Weitere bedeutende Kultstätte mit besonderen Ritualen.</p>
-        </div>
+        <h3>🕋 Lalish</h3><p>Zentrales Heiligtum der Jesiden im Nordirak.</p>
+        <h3>⛰️ Şengal (Sindschar)</h3><p>Historische Bergregion, Symbol des Widerstands.</p>
     </div>
 </div>
 
-<!-- TAB 4: EINSTELLUNGEN / DESIGN -->
+<!-- TAB 4: COMMUNITY (Chat / Meinungen) -->
+<div id="tab-community" class="container">
+    <div class="card">
+        <span class="badge">💬 COMMUNITY – Meinungen & Chat</span>
+        <input type="text" id="chatName" placeholder="Dein Name" value="Gast">
+        <textarea id="chatMsg" rows="2" placeholder="Deine Nachricht ... (z.B. Erfahrungen, Fragen)"></textarea>
+        <button id="sendChatBtn">📨 Absenden</button>
+        <hr style="margin:1rem 0">
+        <div id="chatMessages" style="max-height:300px; overflow-y:auto"></div>
+    </div>
+</div>
+
+<!-- TAB 5: EINSTELLUNGEN -->
 <div id="tab-settings" class="container">
     <div class="card">
         <span class="badge">🎨 DESIGN & THEME</span>
-        <label><strong>Theme wählen:</strong></label>
         <select id="themeSelect">
             <option value="default">Klassisch Dark</option>
             <option value="oled">OLED Schwarz</option>
             <option value="lalish">Lalish Gold</option>
         </select>
-
-        <label style="margin-top: 1rem; display: block;"><strong>🔠 Schriftgröße:</strong></label>
-        <input type="range" id="fontSizeSlider" min="12" max="24" value="16" class="range-input">
-        <div style="text-align: center;" id="fontSizeValue">16px</div>
-
+        <label style="display:block; margin-top:1rem">🔠 Schriftgröße:</label>
+        <input type="range" id="fontSizeSlider" min="12" max="24" value="16">
+        <div id="fontSizeValue" style="text-align:center">16px</div>
         <hr>
         <button id="shareAppBtn">📤 App teilen</button>
-        <button id="resetBtn" style="margin-left: 0.5rem; background: #64748b;">🔄 Reset / Neuladen</button>
-    </div>
-    <div class="card">
-        <p>✨ Fehler melden: Klicke bei Suchergebnissen auf 🚩 und sende eine Mail.<br>
-        📝 Wunschzettel: Wenn ein Wort fehlt, erscheint ein Button – wir fügen es bald hinzu!</p>
+        <button id="resetBtn" style="margin-left:0.5rem; background:#64748b">🔄 Reset</button>
     </div>
 </div>
 
-<!-- NAVIGATION -->
-<div class="nav-bar">
+<nav class="nav-bar">
     <button class="nav-item active" data-tab="search">🔍<span>Suche</span></button>
     <button class="nav-item" data-tab="quiz">🎮<span>Quiz</span></button>
     <button class="nav-item" data-tab="kultur">🦚<span>Kultur</span></button>
+    <button class="nav-item" data-tab="community">💬<span>Community</span></button>
     <button class="nav-item" data-tab="settings">⚙️<span>Einstellungen</span></button>
-</div>
+</nav>
 
 <script>
-    // ======================= WÖRTERBUCH (Jesidisch ↔ Deutsch) =======================
-    const dictionary = {
-        "az": "ich",
-        "the": "du",
-        "aw": "er/sie/es",
-        "em": "wir",
-        "hoon": "ihr",
-        "mader": "Mutter",
-        "pader": "Vater",
-        "bira": "Bruder",
-        "xweşk": "Schwester",
-        "mal": "Haus",
-        "rojek": "Tag",
-        "şev": "Nacht",
-        "xweda": "Gott",
-        "ezid": "Jesid",
-        "pîroz": "heilig",
-        "heval": "Freund",
-        "xwendin": "lesen",
-        "nivîsîn": "schreiben",
-        "çûn": "gehen",
-        "hatin": "kommen",
-        "xwarin": "essen",
-        "vexwarin": "trinken"
-    };
-    // Verbstämme für KI-Übersetzung (vereinfacht)
-    const verbStems = {
-        "xwendin": "xwîn",
-        "nivîsîn": "nivîs",
-        "çûn": "ç",
-        "hatin": "hât",
-        "xwarin": "xwar",
-        "vexwarin": "vexwar"
+    // ------------- WÖRTERBUCH (aus Google Sheets) -------------
+    let dictionary = {};        // { ez: {de, stem, gender} }
+    let allEzWords = [];
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY/export?format=csv";
+
+    // Fallback für Offline / Fehler
+    const fallbackDict = {
+        "az": { de:"ich", stem:"", gender:"" },
+        "the": { de:"du", stem:"", gender:"" },
+        "mader": { de:"Mutter", stem:"", gender:"f" },
+        "pader": { de:"Vater", stem:"", gender:"m" },
+        "xweda": { de:"Gott", stem:"", gender:"m" }
     };
 
-    // Aktuell gesuchter Begriff (für Wunschzettel)
-    let lastSearchedText = "";
-
-    // ----- HILFSFUNKTIONEN -----
-    function playAudio(text) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "de-DE";
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
+    async function loadDictionary() {
+        try {
+            const res = await fetch(CSV_URL);
+            const text = await res.text();
+            const rows = text.split("\n").slice(1); // Kopfzeile ignorieren
+            for (let row of rows) {
+                const cols = row.split(",");
+                if (cols.length >= 2 && cols[0].trim()) {
+                    const ez = cols[0].trim().toLowerCase();
+                    const de = cols[1].trim();
+                    const stem = cols[2] ? cols[2].trim() : "";
+                    const gender = cols[3] ? cols[3].trim().toLowerCase() : "";
+                    dictionary[ez] = { de, stem, gender };
+                }
+            }
+            if (Object.keys(dictionary).length === 0) Object.assign(dictionary, fallbackDict);
+        } catch(e) {
+            console.warn("Fehler beim Laden, nutze Fallback", e);
+            Object.assign(dictionary, fallbackDict);
+        }
+        allEzWords = Object.keys(dictionary);
+        updateWordOfDay();
+        initQuiz();
     }
 
-    function reportError(word) {
-        const subject = `Fehler melden: ${word}`;
-        const body = `Bitte korrigieren Sie die Übersetzung oder das Wort "${word}".\n\nDanke!`;
-        window.location.href = `mailto:developer@example.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    }
-
-    function sendWishlist(word) {
-        const subject = `Wunschzettel: Fehlendes Wort "${word}"`;
-        const body = `Das folgende Wort / der Satz wurde nicht gefunden: ${word}\nBitte ergänzen.`;
-        window.location.href = `mailto:developer@example.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        alert(`„${word}“ wurde auf die Wunschliste gesetzt. Vielen Dank!`);
-    }
-
-    // Wort des Tages (basierend auf aktuellem Tag)
+    // Wort des Tages
     function updateWordOfDay() {
-        const words = Object.keys(dictionary);
-        if (words.length === 0) return;
-        const dayIndex = new Date().getDate() % words.length;
-        const ezWord = words[dayIndex];
-        document.getElementById("daily-ez").innerText = ezWord;
-        document.getElementById("daily-de").innerText = dictionary[ezWord];
+        if (!allEzWords.length) return;
+        const idx = new Date().getDate() % allEzWords.length;
+        const ez = allEzWords[idx];
+        document.getElementById("daily-ez").innerText = ez;
+        document.getElementById("daily-de").innerText = dictionary[ez]?.de || "-";
     }
 
-    // KI-Übersetzung (simple Satzstruktur)
-    function translateSentence(germanText) {
-        let words = germanText.toLowerCase().split(/\s+/);
-        let subj = "Az", suffix = "em";
-        if (words.includes("du") || words.includes("the")) { subj = "The"; suffix = "i"; }
-        else if (words.includes("er") || words.includes("sie") || words.includes("es") || words.includes("aw")) { subj = "Aw"; suffix = "a"; }
-        else if (words.includes("wir") || words.includes("em")) { subj = "Em"; suffix = "în"; }
-        else if (words.includes("ihr") || words.includes("hoon")) { subj = "Hoon"; suffix = "in"; }
+    // ------------- AUTOCOMPLETE (Jesidisch) -------------
+    const searchInput = document.getElementById("searchInput");
+    const autocompleteList = document.getElementById("autocomplete-list");
 
-        let foundVerb = "", object = "";
+    searchInput.addEventListener("input", function(e) {
+        const val = this.value.toLowerCase();
+        if (!val) { autocompleteList.style.display = "none"; return; }
+        const matches = allEzWords.filter(w => w.startsWith(val) || dictionary[w]?.de.toLowerCase().includes(val)).slice(0, 8);
+        if (matches.length) {
+            autocompleteList.innerHTML = matches.map(m => `<div class="autocomplete-item" data-word="${m}">${m} → ${dictionary[m].de}</div>`).join("");
+            autocompleteList.style.display = "block";
+            document.querySelectorAll(".autocomplete-item").forEach(el => {
+                el.addEventListener("click", () => {
+                    searchInput.value = el.dataset.word;
+                    autocompleteList.style.display = "none";
+                    performSearch();
+                });
+            });
+        } else autocompleteList.style.display = "none";
+    });
+    document.addEventListener("click", (e) => { if(e.target !== searchInput) autocompleteList.style.display = "none"; });
+
+    // ------------- WIKIPEDIA BILDER & BEISPIELE -------------
+    async function fetchWikipediaImage(query) {
+        if (!query) return null;
+        try {
+            const url = `https://de.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            return data.thumbnail?.source || null;
+        } catch(e) { return null; }
+    }
+
+    function generateExampleSentence(wordDe, wordEz) {
+        const examples = {
+            "gehen": "Ich gehe zur Schule.",
+            "essen": "Wir essen Brot.",
+            "Mutter": "Meine Mutter ist liebevoll.",
+            "Vater": "Der Vater arbeitet hart.",
+            "Haus": "Das Haus ist groß."
+        };
+        for (let [key, sentence] of Object.entries(examples)) {
+            if (wordDe.toLowerCase().includes(key)) return sentence;
+        }
+        return `Beispiel: „${wordDe}“ – ein wichtiges Wort im Alltag.`;
+    }
+
+    // ------------- SATZÜBERSETZUNG (kurdisch-ähnlich SOV) -------------
+    function translateSentenceToEzidi(germanText) {
+        const words = germanText.toLowerCase().split(/\s+/);
+        let subject = "Az", suffix = "em";
+        if (words.includes("du")) { subject = "The"; suffix = "i"; }
+        else if (words.includes("er") || words.includes("sie") || words.includes("es")) { subject = "Aw"; suffix = "a"; }
+        else if (words.includes("wir")) { subject = "Em"; suffix = "în"; }
+        else if (words.includes("ihr")) { subject = "Hoon"; suffix = "in"; }
+
+        let object = "", verb = "";
         for (let w of words) {
-            for (let ez in dictionary) {
-                if (dictionary[ez].toLowerCase() === w || ez === w) {
-                    if (verbStems[ez]) foundVerb = ez;
+            for (let [ez, data] of Object.entries(dictionary)) {
+                if (data.de.toLowerCase() === w || ez === w) {
+                    if (data.stem && data.stem !== "") verb = ez;
                     else object = ez;
                     break;
                 }
             }
         }
-        if (object && words.some(w => w === "einen" || w === "eine")) object += "ekî";
         let conjugated = "";
-        if (foundVerb && verbStems[foundVerb]) {
-            let stem = verbStems[foundVerb];
+        if (verb && dictionary[verb]?.stem) {
+            let stem = dictionary[verb].stem;
             conjugated = stem + suffix;
         }
-        let result = `${subj} ${object} ${conjugated}`.trim().replace(/\s+/g, " ");
-        return result.charAt(0).toUpperCase() + result.slice(1);
+        let result = `${subject} ${object} ${conjugated}`.trim().replace(/\s+/g, " ");
+        return result.charAt(0).toUpperCase() + result.slice(1) || "Übersetzung nicht möglich";
     }
 
-    // Suche & Ergebnisse anzeigen
-    function performSearch() {
-        const query = document.getElementById("searchInput").value.trim();
-        lastSearchedText = query;
+    // ------------- SUCHFUNKTION (Wörter + Sätze + Bilder) -------------
+    let lastSearchQuery = "";
+    async function performSearch() {
+        const query = searchInput.value.trim();
+        lastSearchQuery = query;
         const resultsDiv = document.getElementById("search-results");
-        const bannerDiv = document.getElementById("sentence-banner");
+        const banner = document.getElementById("sentence-banner");
         const wishlistDiv = document.getElementById("wishlist-notify");
 
-        if (!query) {
-            resultsDiv.innerHTML = "";
-            bannerDiv.style.display = "none";
-            wishlistDiv.style.display = "none";
-            return;
-        }
+        if (!query) { resultsDiv.innerHTML = ""; banner.style.display = "none"; wishlistDiv.style.display = "none"; return; }
 
         // Satzübersetzung anzeigen
-        const ezSentence = translateSentence(query);
-        document.getElementById("sentence-translation").innerText = ezSentence;
-        bannerDiv.style.display = "block";
+        const ezTranslation = translateSentenceToEzidi(query);
+        document.getElementById("sentence-translation").innerText = ezTranslation;
+        banner.style.display = "block";
 
-        // Wort-für-Wort-Suche
-        const searchWords = query.toLowerCase().split(/\s+/);
-        let foundAny = false;
+        // Wortsuche
+        let found = false;
         let html = "";
-
-        searchWords.forEach(word => {
-            let matched = false;
-            for (let [ez, de] of Object.entries(dictionary)) {
-                if (ez === word || de.toLowerCase() === word || (de.toLowerCase().includes(word) && word.length > 2)) {
-                    html += `
-                        <div class="result-card">
-                            <div class="flex-between">
-                                <div>
-                                    <span class="badge">📖 VOKABEL</span>
-                                    <div class="word-ez">${ez}</div>
-                                    <div>${de}</div>
-                                </div>
-                                <div style="display: flex; gap: 8px;">
-                                    <button class="audio-icon" onclick="playAudio('${de}')">🔊</button>
-                                    <button class="flag-icon" onclick="reportError('${ez}')">🚩</button>
-                                </div>
+        for (let [ez, data] of Object.entries(dictionary)) {
+            if (query.toLowerCase() === ez.toLowerCase() || data.de.toLowerCase().includes(query.toLowerCase())) {
+                const imgUrl = await fetchWikipediaImage(data.de.split(" ")[0]);
+                const example = generateExampleSentence(data.de, ez);
+                html += `
+                    <div class="result-card">
+                        <div class="flex-between">
+                            <div>
+                                <span class="badge">📖 ${data.gender ? `Genus: ${data.gender}` : "Vokabel"}</span>
+                                <div class="word-ez">${ez}</div>
+                                <div>🇩🇪 ${data.de}</div>
+                                <div style="font-size:0.85rem; margin-top:0.5rem;">📘 Beispiel: ${example}</div>
+                                ${imgUrl ? `<img src="${imgUrl}" class="wiki-img" alt="Bild">` : ""}
                             </div>
+                            <div><button onclick="playAudio('${data.de}')">🔊</button>
+                            <button onclick="reportError('${ez}')">🚩</button></div>
                         </div>
-                    `;
-                    matched = true;
-                    foundAny = true;
-                }
+                    </div>
+                `;
+                found = true;
+                break;
             }
-            if (!matched && word.length > 2 && !["der","die","das","ein","eine","einer"].includes(word)) {
-                html += `<div class="result-card">❌ Kein Eintrag für „${word}“ gefunden. Klicke unten auf „Wunschzettel“.</div>`;
-            }
-        });
-
-        if (!foundAny) {
-            html = `<div class="result-card">😞 Keine Übersetzung gefunden. Hilf uns, die App zu verbessern – nutze den Wunschzettel!</div>`;
-            wishlistDiv.style.display = "block";
-        } else {
-            wishlistDiv.style.display = "none";
         }
+        if (!found) {
+            html = `<div class="result-card">❌ Kein Eintrag gefunden. Nutze den Wunschzettel.</div>`;
+            wishlistDiv.style.display = "block";
+        } else wishlistDiv.style.display = "none";
         resultsDiv.innerHTML = html;
     }
 
-    // ----- QUIZ LOGIC -----
+    // ------------- QUIZ -------------
     let currentQuizWord = "";
     function initQuiz() {
-        const words = Object.keys(dictionary);
-        if (words.length < 4) return;
-        const correctWord = words[Math.floor(Math.random() * words.length)];
-        currentQuizWord = correctWord;
-        const correctTrans = dictionary[correctWord];
-        let options = [correctTrans];
-        while (options.length < 4) {
-            let rand = dictionary[words[Math.floor(Math.random() * words.length)]];
-            if (!options.includes(rand)) options.push(rand);
+        if (!allEzWords.length) return;
+        const correct = allEzWords[Math.floor(Math.random() * allEzWords.length)];
+        currentQuizWord = correct;
+        const correctDe = dictionary[correct].de;
+        let opts = [correctDe];
+        while(opts.length < 4) {
+            let rand = dictionary[allEzWords[Math.floor(Math.random() * allEzWords.length)]].de;
+            if(!opts.includes(rand)) opts.push(rand);
         }
-        options.sort(() => Math.random() - 0.5);
-
-        document.getElementById("quiz-question").innerHTML = `Was bedeutet <strong style="color:var(--primary)">${correctWord}</strong>?`;
+        opts.sort(() => Math.random() - 0.5);
+        document.getElementById("quiz-question").innerHTML = `Was bedeutet <strong style="color:var(--primary)">${correct}</strong>?`;
         const optsDiv = document.getElementById("quiz-options");
         optsDiv.innerHTML = "";
         document.getElementById("quiz-feedback").innerHTML = "";
-
-        options.forEach(opt => {
+        opts.forEach(opt => {
             const btn = document.createElement("button");
             btn.className = "quiz-option";
             btn.innerText = opt;
             btn.onclick = () => {
-                const isCorrect = (opt === correctTrans);
-                if (isCorrect) {
-                    btn.classList.add("correct");
-                    document.getElementById("quiz-feedback").innerHTML = "✅ Richtig! Gut gemacht!";
-                } else {
-                    btn.classList.add("wrong");
-                    document.getElementById("quiz-feedback").innerHTML = `❌ Falsch! Richtig wäre: ${correctTrans}`;
-                }
-                // Alle Buttons deaktivieren
+                const isCorrect = (opt === correctDe);
+                btn.classList.add(isCorrect ? "correct" : "wrong");
+                document.getElementById("quiz-feedback").innerHTML = isCorrect ? "✅ Richtig!" : `❌ Falsch! Richtig: ${correctDe}`;
                 document.querySelectorAll("#quiz-options button").forEach(b => b.disabled = true);
             };
             optsDiv.appendChild(btn);
         });
     }
+    document.getElementById("nextQuizBtn")?.addEventListener("click", initQuiz);
 
-    // ----- THEMES & SCHRIFTGRÖSSE -----
-    function applyTheme(theme) {
-        document.body.classList.remove("oled", "lalish");
-        if (theme === "oled") document.body.classList.add("oled");
-        else if (theme === "lalish") document.body.classList.add("lalish");
-        localStorage.setItem("theme", theme);
+    // ------------- COMMUNITY (localStorage Chat) -------------
+    function loadChatMessages() {
+        const messages = JSON.parse(localStorage.getItem("ezidiChat") || "[]");
+        const container = document.getElementById("chatMessages");
+        container.innerHTML = messages.map(m => `<div class="chat-message"><span class="chat-name">${escapeHtml(m.name)}</span> <small>${m.time}</small><br>${escapeHtml(m.text)}</div>`).join("");
     }
-
-    function setFontSize(px) {
-        document.documentElement.style.setProperty("--font-size", px + "px");
-        document.getElementById("fontSizeValue").innerText = px + "px";
-        localStorage.setItem("fontSize", px);
+    function addChatMessage(name, text) {
+        if(!text.trim()) return;
+        const messages = JSON.parse(localStorage.getItem("ezidiChat") || "[]");
+        messages.push({ name: name.trim() || "Anonym", text: text.trim(), time: new Date().toLocaleTimeString() });
+        localStorage.setItem("ezidiChat", JSON.stringify(messages.slice(-50)));
+        loadChatMessages();
+        document.getElementById("chatMsg").value = "";
     }
+    document.getElementById("sendChatBtn")?.addEventListener("click", () => {
+        const name = document.getElementById("chatName").value;
+        const msg = document.getElementById("chatMsg").value;
+        addChatMessage(name, msg);
+    });
+    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
-    // ----- TAB NAVIGATION -----
+    // ------------- WEITERE FUNKTIONEN -------------
+    function playAudio(text) { const u = new SpeechSynthesisUtterance(text); u.lang = "de-DE"; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+    function reportError(word) { window.location.href = `mailto:developer@example.com?subject=Fehler: ${word}&body=Bitte korrigieren: ${word}`; }
+    function sendWishlist(word) { window.location.href = `mailto:developer@example.com?subject=Wunschzettel&body=Fehlendes Wort: ${word}`; alert(`"${word}" wurde gemeldet.`); }
+    document.getElementById("sendWishlistBtn")?.addEventListener("click", () => { if(lastSearchQuery) sendWishlist(lastSearchQuery); });
+
+    // ------------- THEME & SCHRIFT -------------
+    function applyTheme(theme) { document.body.classList.remove("oled","lalish"); if(theme==="oled") document.body.classList.add("oled"); if(theme==="lalish") document.body.classList.add("lalish"); localStorage.setItem("theme",theme); }
+    function setFontSize(px) { document.documentElement.style.setProperty("--font-size", px+"px"); document.getElementById("fontSizeValue").innerText = px+"px"; localStorage.setItem("fontSize",px); }
+    const savedTheme = localStorage.getItem("theme") || "default"; applyTheme(savedTheme); document.getElementById("themeSelect").value = savedTheme;
+    document.getElementById("themeSelect").addEventListener("change", e => applyTheme(e.target.value));
+    const savedFont = localStorage.getItem("fontSize") || "16"; document.getElementById("fontSizeSlider").value = savedFont; setFontSize(savedFont);
+    document.getElementById("fontSizeSlider").addEventListener("input", e => setFontSize(e.target.value));
+    document.getElementById("shareAppBtn")?.addEventListener("click", () => { if(navigator.share) navigator.share({title:"EZ-DE-Translator", text:"Lerne Jesidisch!", url:location.href}); else alert("App speichern oder teilen."); });
+    document.getElementById("resetBtn")?.addEventListener("click", () => location.reload());
+
+    // ------------- TAB NAVIGATION -------------
     function switchTab(tabId) {
-        document.querySelectorAll(".container").forEach(container => container.classList.remove("active"));
+        document.querySelectorAll(".container").forEach(c => c.classList.remove("active"));
         document.getElementById(`tab-${tabId}`).classList.add("active");
         document.querySelectorAll(".nav-item").forEach(btn => btn.classList.remove("active"));
         document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add("active");
-        if (tabId === "quiz") initQuiz();  // Quiz neu laden
+        if(tabId === "quiz") initQuiz();
+        if(tabId === "community") loadChatMessages();
     }
+    document.querySelectorAll(".nav-item").forEach(btn => btn.addEventListener("click", (e) => { switchTab(btn.dataset.tab); }));
+    searchInput.addEventListener("input", () => performSearch());
 
-    // ----- SHARE & RESET -----
-    function shareApp() {
-        if (navigator.share) navigator.share({ title: "EZ-DE-Translator", text: "Jesidisch-Deutsch Wörterbuch & Kultur-App", url: window.location.href });
-        else alert("Teile diese App: Speichere die HTML-Datei oder sende den Link weiter.");
-    }
-
-    // ----- EVENT LISTENER & INIT -----
-    document.addEventListener("DOMContentLoaded", () => {
-        updateWordOfDay();
-
-        // Suchfeld
-        const searchInput = document.getElementById("searchInput");
-        searchInput.addEventListener("input", () => performSearch());
-        
-        // Wunschzettel Button
-        document.getElementById("sendWishlistBtn")?.addEventListener("click", () => {
-            if (lastSearchedText) sendWishlist(lastSearchedText);
-            else alert("Bitte zuerst einen Begriff eingeben.");
-        });
-
-        // Quiz
-        document.getElementById("nextQuizBtn")?.addEventListener("click", () => initQuiz());
-        
-        // Theme & Schrift
-        const savedTheme = localStorage.getItem("theme") || "default";
-        applyTheme(savedTheme);
-        document.getElementById("themeSelect").value = savedTheme;
-        document.getElementById("themeSelect").addEventListener("change", (e) => applyTheme(e.target.value));
-
-        const savedFont = localStorage.getItem("fontSize") || "16";
-        document.getElementById("fontSizeSlider").value = savedFont;
-        setFontSize(savedFont);
-        document.getElementById("fontSizeSlider").addEventListener("input", (e) => setFontSize(e.target.value));
-
-        // Teilen & Reset
-        document.getElementById("shareAppBtn")?.addEventListener("click", shareApp);
-        document.getElementById("resetBtn")?.addEventListener("click", () => location.reload());
-
-        // Navigation
-        document.querySelectorAll(".nav-item").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                const tab = btn.getAttribute("data-tab");
-                if (tab) switchTab(tab);
-            });
-        });
-
-        // Standard: Quiz initialisieren
-        initQuiz();
+    // ------------- INIT -------------
+    loadDictionary().then(() => {
+        performSearch();
+        loadChatMessages();
     });
 </script>
 </body>
