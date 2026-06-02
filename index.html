@@ -124,4 +124,72 @@
     <button class="nav-item" onclick="switchTab('kultur')">🕌<span>Kultur</span></button>
     <button class="nav-item" onclick="switchTab('settings')">⚙️<span>Optionen</span></button>
 </nav>
+    // ==========================================
+// ERWEITERUNG: BLOCK 3 (GRAMMATIK & ZEITFORMEN)
+// ==========================================
+
+function applyAdvancedGrammar(finalSatz, words) {
+    // 1. Vergangenheitsform (Präteritum/Perfekt) erkennen und Suffix anpassen
+    if (words.some(w => ["war", "hatte", "gemacht", "gegessen", "ging", "vorgestern", "gestern"].includes(w))) {
+        // Ersetzt das Präfix 'de' durch das Vergangenheitspräfix 're'
+        finalSatz = finalSatz.replace(/\bde([a-z]+)(em|i|a|en)\b/gi, "re$1$2");
+    }
+
+    // 2. Plural-Erkennung für Objekte (Erweiterung der -án Regel)
+    // Wenn ein Wort auf typische deutsche Pluralendungen endet, füge Plural-Suffix hinzu
+    for (let ez in dictionary) {
+        if (wordGender[ez] === "plural" || words.some(w => w === ez.toLowerCase() + "s" || w === ez.toLowerCase() + "e")) {
+            finalSatz = finalSatz.replace(new RegExp(`\\b${ez}\\b`, "gi"), ez + "án");
+        }
+    }
+
+    // 3. Possessivpronomen (mein, dein, sein) als Suffixe verarbeiten
+    if (words.includes("mein") || words.includes("meine")) {
+        finalSatz = finalSatz.replace(/\b([A-Z][a-z]+)\b/g, "$1-mô"); // z.B. Mutter-mô
+    } else if (words.includes("dein") || words.includes("deine")) {
+        finalSatz = finalSatz.replace(/\b([A-Z][a-z]+)\b/g, "$1-tô"); // z.B. Mutter-tô
+    }
+
+    // 4. Letzter Schliff: Bereinigung doppelter Leerzeichen & finale Formatierung
+    finalSatz = finalSatz.replace(/\s+/g, " ").trim();
+    return finalSatz.charAt(0).toUpperCase() + finalSatz.slice(1);
+}
+
+// Integriere diese Zeile am Ende deiner bestehenden 'translateWithAI'-Funktion (direkt vor dem "Y"-Regel-Replace):
+// finalSatz = applyAdvancedGrammar(finalSatz, words);
+
+
+// ==========================================
+// ERWEITERUNG: BLOCK 4 (ROBUSTHEIT & CACHE)
+// ==========================================
+
+// 1. Lokales Fallback-Wörterbuch (falls die Google-Tabelle offline ist)
+const localFallbackDiff = {
+    "az": "ich", "the": "du", "aw": "er / sie / es",
+    "mader": "Mutter", "pader": "Vater", "machen": "machen"
+};
+
+// 2. Debounce-Funktion (verhindert Server-Überlastung bei schnellem Tippen)
+function debounce(func, delay = 300) {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+// Optimiert den Such-Aufruf durch Verzögerung
+const debouncedSearch = debounce(() => handleSmartSearch());
+document.getElementById('searchInput').oninput = debouncedSearch;
+
+// 3. Fehler-Handler für die CSV-Verbindung (Erweiterung des fetch.catch)
+function loadLocalFallback() {
+    console.warn("Google Sheets offline. Nutze lokalen Cache...");
+    dictionary = { ...localFallbackDiff };
+    initQuiz();
+}
+
+// Ersetze das .catch(err => ...) im initialen Fetch durch:
+// .catch(err => { console.error(err); loadLocalFallback(); });
+
 
