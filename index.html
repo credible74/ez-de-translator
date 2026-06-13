@@ -3,582 +3,515 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>EZ-DE-TRANSLATOR – Stabile Baukasten-Engine</title>
+    <title>Deutsch-Jesidisch / Kurdisch Übersetzer</title>
     <style>
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        :root {
-            --primary: #1d7efd;
-            --accent: #8f6fff;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --font-size: 16px;
-            --de-color: #4ade80;
-            --ez-color: #facc15;
-        }
-        body.oled {
-            --primary: #0ff;
-            --accent: #0aa;
-            --bg: #000;
-            --card: #111;
-            --text: #0ff;
-            --border: #055;
-            --de-color: #2ecc71;
-            --ez-color: #f1c40f;
-        }
-        body.lalish {
-            --primary: #b8860b;
-            --accent: #daa520;
-            --bg: #fff8e7;
-            --card: #fff0c0;
-            --text: #4a3600;
-            --border: #e0b84d;
-            --de-color: #2c6e2c;
-            --ez-color: #b85c00;
         }
         body {
-            font-family: system-ui, 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            font-size: var(--font-size);
-            transition: all 0.2s;
-            padding-bottom: 75px;
-        }
-        header {
-            background: var(--card);
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 2px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 20;
-        }
-        .logo {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: var(--primary);
-        }
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 1rem;
-            display: none;
-        }
-        .container.active {
-            display: block;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
         .card {
-            background: var(--card);
-            border-radius: 1.2rem;
-            padding: 1.2rem;
-            margin-bottom: 1.2rem;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        .badge {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            font-size: 0.7rem;
-            font-weight: bold;
-            padding: 0.2rem 0.8rem;
-            border-radius: 2rem;
-            margin-bottom: 0.6rem;
-        }
-        input, select, .range-input {
+            max-width: 800px;
             width: 100%;
-            padding: 0.7rem;
-            border-radius: 1rem;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c2c 0%, #2a5a3a 100%);
+            padding: 28px 28px 20px 28px;
+            color: white;
+        }
+        .header h1 {
+            margin: 0 0 6px 0;
+            font-weight: 600;
+            font-size: 1.9rem;
+            letter-spacing: -0.3px;
+        }
+        .header p {
+            margin: 0;
+            opacity: 0.85;
+            font-size: 0.95rem;
+        }
+        .status-badge {
+            display: inline-block;
+            background: #facc15;
+            color: #1e293b;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 40px;
+            margin-top: 14px;
+        }
+        .content {
+            padding: 28px;
+        }
+        .input-group {
+            margin-bottom: 24px;
+        }
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #0f172a;
+            display: block;
+            margin-bottom: 8px;
+        }
+        textarea {
+            width: 100%;
+            padding: 14px 18px;
             font-size: 1rem;
-            margin-top: 0.3rem;
+            font-family: inherit;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 24px;
+            resize: vertical;
+            transition: 0.2s;
+            background: #ffffff;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #2a5a3a;
+            box-shadow: 0 0 0 3px rgba(42, 90, 58, 0.2);
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 28px;
         }
         button {
-            cursor: pointer;
-            background: var(--primary);
+            background: #f1f5f9;
             border: none;
-            color: white;
-            font-weight: bold;
-            border-radius: 2rem;
-            padding: 0.6rem 1.2rem;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
             transition: 0.2s;
+            color: #1e293b;
         }
-        button:hover {
-            background: var(--accent);
+        button.primary {
+            background: #2a5a3a;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        button.primary:hover {
+            background: #1e4630;
+            transform: scale(0.97);
+        }
+        button.secondary {
+            background: #e9eef3;
+        }
+        button.secondary:hover {
+            background: #dee4ec;
         }
         .result-card {
-            background: var(--card);
-            border-radius: 1rem;
-            padding: 1rem;
-            margin-top: 1rem;
-            border-left: 4px solid var(--primary);
+            background: #f8fafc;
+            border-radius: 28px;
+            padding: 20px;
+            border: 1px solid #eef2f6;
+            margin-top: 12px;
         }
-        .word-ez {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--ez-color);
-            margin: 0.3rem 0;
+        .result-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #3b5c48;
+            margin-bottom: 8px;
         }
-        .word-de {
+        .result-text {
             font-size: 1.2rem;
-            color: var(--de-color);
-            margin: 0.2rem 0;
+            line-height: 1.4;
+            word-break: break-word;
+            font-weight: 500;
+            color: #0f172a;
         }
-        .lang-badge {
+        .fallback-note {
+            margin-top: 14px;
+            font-size: 0.75rem;
+            background: #fff9e3;
+            padding: 8px 12px;
+            border-radius: 20px;
             display: inline-block;
-            background: var(--accent);
-            border-radius: 1rem;
-            padding: 0.1rem 0.5rem;
-            font-size: 0.7rem;
-            margin-right: 0.5rem;
+            color: #926d1a;
         }
-        .autocomplete-items {
-            background: var(--card);
-            border-radius: 1rem;
-            max-height: 200px;
-            overflow-y: auto;
-            position: absolute;
-            z-index: 10;
-            width: calc(100% - 2rem);
+        .loader {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
         }
-        .autocomplete-item {
-            padding: 0.6rem;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border);
-        }
-        .autocomplete-item:hover {
-            background: var(--primary);
-            color: white;
-        }
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--card);
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-around;
-            padding: 0.5rem;
-            z-index: 20;
-        }
-        .nav-item {
-            background: none;
+        @keyframes spin { to { transform: rotate(360deg); } }
+        hr {
+            margin: 24px 0 16px;
             border: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-muted);
-            font-size: 1.2rem;
-            padding: 0.3rem;
+            border-top: 1px solid #e2edf2;
         }
-        .nav-item.active {
-            color: var(--primary);
-            border-bottom: 2px solid var(--primary);
+        .footer {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #6c7a91;
+            border-top: 1px solid #eef2f8;
+            padding: 18px 28px 22px;
+            background: #ffffff;
         }
-        .quiz-option {
-            width: 100%;
-            text-align: left;
-            background: var(--bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            margin: 0.5rem 0;
-            padding: 0.8rem;
-            border-radius: 1rem;
+        .error {
+            color: #b91c1c;
+            background: #fee2e2;
+            padding: 10px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
         }
-        .quiz-option.correct {
-            background: #10b981;
-            color: white;
-        }
-        .quiz-option.wrong {
-            background: #ef4444;
-            color: white;
-        }
-        .sentence-banner {
-            background: var(--accent);
-            padding: 1rem;
-            border-radius: 1rem;
-            margin-top: 1rem;
-        }
-        .warning {
-            background: #f59e0b;
-            color: #000;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            font-size: 0.8rem;
-            margin-bottom: 1rem;
+        @media (max-width: 550px) {
+            .content { padding: 20px; }
+            .header h1 { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo">🦚 EZ-DE-TRANSLATOR – Stabile Baukasten-Engine</div>
-</header>
-
-<div id="tab-search" class="container active">
-    <div id="infoMsg" class="warning" style="display:none;">📚 Lade Daten aus Google Sheet ...</div>
-    <div class="card" style="text-align:center">
-        <span class="badge">📅 WORT DES TAGES</span>
-        <div class="word-ez" id="daily-ez">-</div>
-        <div class="word-de" id="daily-de">-</div>
+<div class="card">
+    <div class="header">
+        <h1>🇩🇪 ↔️ 🇽🇰 Deutsch–Jesidisch</h1>
+        <p>Wörterbuch mit Google Sheets + Kurdisch-Fallback (Kurmanji) in jesidischer Schrift</p>
+        <div class="status-badge" id="sheetStatus">📡 Lade Wörterbuch...</div>
     </div>
-    <div class="card" style="position:relative">
-        <input type="text" id="searchInput" placeholder="Deutschen Satz oder einzelnes Wort eingeben ..." autocomplete="off">
-        <div id="autocomplete-list" class="autocomplete-items" style="display:none"></div>
-        <div id="sentence-banner" class="sentence-banner" style="display:none">
-            <div><span class="lang-badge" style="background:#b85c00;">Jesidisch (Baukasten)</span> <strong>Übersetzung:</strong></div>
-            <div id="sentence-translation" style="font-size:1.2rem; font-weight:bold; margin-top:0.3rem; color:var(--ez-color); word-break:break-word;"></div>
+
+    <div class="content">
+        <div class="input-group">
+            <label>📝 Deutscher Text (Wort / Satz)</label>
+            <textarea id="germanInput" rows="2" placeholder="z. B. Hallo, wie geht es dir?"></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="primary" id="translateBtn">✨ Übersetzen</button>
+            <button class="secondary" id="swapBtn">🔄 Beispiel laden</button>
+            <button class="secondary" id="clearBtn">🗑️ Leeren</button>
+        </div>
+
+        <div class="result-card">
+            <div class="result-label">🪶 JESIDISCH / KURDISCH (angepasst)</div>
+            <div class="result-text" id="translationOutput">—</div>
+            <div id="infoNote"></div>
         </div>
     </div>
-    <div id="search-results"></div>
-</div>
-
-<div id="tab-quiz" class="container">
-    <div class="card" style="text-align:center">
-        <span class="badge">🎮 VOKABEL-QUIZ</span>
-        <h2 id="quiz-question">Lade ...</h2>
-        <div id="quiz-options"></div>
-        <p id="quiz-feedback" style="margin-top:0.8rem;"></p>
-        <button id="nextQuizBtn">➡️ Nächstes Wort</button>
+    <div class="footer">
+        ⚡ Basis: Google Sheet (de ↔ jesidisch) • Fehlende Einträge werden über Kurdisch-API übersetzt <br>
+        ✨ Automatische Buchstabenkonvertierung → jesidische Schriftform
     </div>
 </div>
-
-<div id="tab-settings" class="container">
-    <div class="card">
-        <span class="badge">🎨 DESIGN & THEME</span>
-        <select id="themeSelect">
-            <option value="default">Klassisch Dark</option>
-            <option value="oled">OLED Schwarz</option>
-            <option value="lalish">Lalish Gold</option>
-        </select>
-        <label style="display:block; margin-top:1rem">🔠 Schriftgröße:</label>
-        <input type="range" id="fontSizeSlider" min="12" max="24" value="16">
-        <div id="fontSizeValue" style="text-align:center">16px</div>
-        <hr>
-        <button id="shareAppBtn">📤 App teilen</button>
-        <button id="resetBtn">🔄 Reset</button>
-        <p style="margin-top:1rem; font-size:0.8rem;">✨ Die App trennt strikt zwischen Einzelwörtern und ganzen Sätzen (Google Sheet: jede Zeile ist entweder ein Wort oder ein Satz). Kein automatischer Zerteiler – keine falschen Wortpaare mehr.</p>
-    </div>
-</div>
-
-<nav class="nav-bar">
-    <button class="nav-item active" data-tab="search">🔍<span>Suche</span></button>
-    <button class="nav-item" data-tab="quiz">🎮<span>Quiz</span></button>
-    <button class="nav-item" data-tab="settings">⚙️<span>Einstellungen</span></button>
-</nav>
 
 <script>
-    // ======================== SAUBERE CONFIG & DATENSTRUKTUR ========================
-    let translationExamples = [];   // Für ganze Sätze
-    let singleWordsLexicon = {};    // Für echte Einzelwörter (deutsch -> jesidisch)
-    let allWordsList = [];          // Nur die deutschen Einzelwörter für Autocomplete & Quiz
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY/export?format=tsv";
-
-    // ------------- STRICKTER DATA LOADER -------------
-    async function loadTranslationData() {
-        const infoDiv = document.getElementById("infoMsg");
-        infoDiv.style.display = "block";
-        infoDiv.innerText = "📚 Lade Daten aus Google Sheet ...";
-        try {
-            const res = await fetch(CSV_URL);
-            if (!res.ok) throw new Error("Netzwerkfehler");
-            const text = await res.text();
-            const rows = text.split("\n").slice(1); // Kopfzeile überspringen
-            
-            translationExamples = [];
-            singleWordsLexicon = {};
-            
-            for (let row of rows) {
-                if (!row.trim()) continue;
-                const cols = row.split("\t");
-                if (cols.length >= 2 && cols[0].trim() && cols[1].trim()) {
-                    let deText = cols[0].trim().toLowerCase();
-                    let ezText = cols[1].trim();
-                    
-                    // Anzahl Wörter im deutschen Text ermitteln (Trennzeichen Leerzeichen)
-                    let wordCount = deText.split(/\s+/).length;
-                    
-                    if (wordCount === 1) {
-                        // Einzelwort -> sauberes Lexikon
-                        let cleanWord = deText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
-                        singleWordsLexicon[cleanWord] = ezText;
-                    } else {
-                        // Ganzer Satz
-                        translationExamples.push({ de: deText, ez: ezText });
-                    }
-                }
-            }
-            
-            // Liste aller deutschen Einzelwörter für Autocomplete & Quiz
-            allWordsList = Object.keys(singleWordsLexicon);
-            
-            infoDiv.style.display = "none";
-            console.log(`✅ Geladen: ${translationExamples.length} Sätze, ${allWordsList.length} Einzelwörter.`);
-            
-            // Falls nichts geladen wurde, minimalen Fallback bereitstellen
-            if (translationExamples.length === 0 && allWordsList.length === 0) {
-                throw new Error("Keine Daten – bitte Google Sheet prüfen.");
-            }
-        } catch(e) {
-            console.error("Fehler beim Laden:", e);
-            infoDiv.innerText = `⚠️ Fehler: ${e.message}. Nutze minimale Fallback-Daten.`;
-            infoDiv.style.background = "#f59e0b";
-            // Fallback, damit die App nicht völlig leer ist
-            singleWordsLexicon = { "ich": "az", "trinke": "vedixwim", "wasser": "avê", "tee": "çayê" };
-            allWordsList = Object.keys(singleWordsLexicon);
-            translationExamples = [
-                { de: "ich trinke wasser", ez: "ez avê vedixwim" },
-                { de: "ich trinke tee", ez: "ez çayê vedixwim" }
-            ];
+    // --------------------------------------------------------------
+    // 1. KONFIGURATION: Google Sheet (öffentlich als CSV/JSON)
+    //    DEINE SHEET-ID: 1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY
+    // --------------------------------------------------------------
+    const SHEET_ID = "1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY";
+    // Wir nutzen die Google Sheets CSV-Export-URL (öffentlich, kein API-Key notwendig)
+    // A = deutsch, B = jesidisch (ab Zeile 2, Zeile 1 sind Überschriften)
+    const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
+    // Alternative: direkter CSV-Export (funktioniert bei öffentlich geteilten Sheets)
+    // --------------------------------------------------------------
+    
+    let dictionary = new Map(); // Key: deutsches Wort (lowercase) -> jesidische Phrase
+    let sheetLoaded = false;
+    let loadingPromise = null;
+    
+    // --------------------------------------------------------------
+    // 2. Buchstaben-Mapping (Kurdisch (Kurmanji) → Jesidische Konvention)
+    //    Gemäß deiner Vorgaben + zusätzliche Standard-Regeln
+    // --------------------------------------------------------------
+    const letterMapping = {
+        // Standard-Ersetzungen nach deiner Tabelle
+        "Î": "Î", "Ê": "Ê", "Ş": "Ş", "Ç": "Ç",   // bleiben wie gehabt
+        "Ç": "Ç",  // für kurdisches Ç bleibt Ç (im Jesidischen vorhanden)
+        // Falls API "X" zurückgibt -> mapping nach Jesidisch (Kh / X)
+        "X": "X",       // im Jesidischen als X erlaubt (Kh)
+        // Weiteres nach deiner Spezifikation: Th, Ph, Gh etc.
+        // (werden aus der Quelle i.d.R. nicht direkt geliefert, aber wir mappen zur Sicherheit)
+        "Th": "Th", "Ph": "Ph", "Gh": "X",    // Gh im Kurdischen nicht, deshalb X (gemäß deiner Regel)
+        "Kh": "X",
+        // zusätzliche intuitive Anpassungen (z. B. î, ê bleiben erhalten)
+        "î": "î", "ê": "ê", "ş": "ş", "ç": "ç", "x": "x"
+    };
+    
+    /**
+     * Konvertiert einen Text von standard Kurmanji (lateinisch) in die
+     * gewünschte jesidische Buchstabenform (basierend auf deinen Vorgaben)
+     */
+    function toJesidicScript(text) {
+        if (!text) return text;
+        // 1. Reihenfolge wichtig: zuerst mehrbuchstabige Token ersetzen (Th, Ph, Kh, Gh)
+        let result = text;
+        const multiMap = {
+            "Th": "Th", "th": "th",
+            "Ph": "Ph", "ph": "ph",
+            "Kh": "X",  "kh": "x",
+            "Gh": "X",  "gh": "x",
+            "Ch": "Ç",  "ch": "ç"     // in manchen Dialekten, klarstellen
+        };
+        for (let [kurd, jes] of Object.entries(multiMap)) {
+            result = result.replace(new RegExp(kurd, 'g'), jes);
         }
-        updateWordOfDay();
-        initQuiz();
-        // Autocomplete-Liste initialisieren (keine zusätzliche Aktion nötig)
+        // 2. Einzelbuchstaben (nach deiner Tabelle: X bleibt X, kein extra C außer Ç)
+        //    Wir ersetzen exemplarisch eventuell vorhandenes "C" ohne Haken (selten)
+        //    Aber wichtig: Kurdisches "C" (dsch) bleibt C? Laut Tabelle: C bleibt C.
+        //    Lediglich "X" existiert im Kurdischen nicht, aber wird i.d.R. als X geschrieben.
+        //    Dein Mapping: "X" existiert bei dir und wird beibehalten.
+        //    Ignoriere problematische Zeichen.
+        result = result.replace(/C(?!h)/g, 'C'); // kein Zwang, nur safety
+        
+        return result;
     }
-
-    // ------------- FEHLERFREIE BAUKASTEN-ENGINE -------------
-    function translateLocalSmart(userInput) {
-        let cleanInput = userInput.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
-        if (!cleanInput) return "";
+    
+    // --------------------------------------------------------------
+    // 3. Google Sheet laden (CSV over gviz or public fetch)
+    // --------------------------------------------------------------
+    async function loadSheetDictionary() {
+        if (loadingPromise) return loadingPromise;
         
-        let inputWords = cleanInput.split(/\s+/);
-        
-        // --- FALL 1: EINZELWORT (direkter Lookup im Lexikon) ---
-        if (inputWords.length === 1) {
-            if (singleWordsLexicon[cleanInput]) {
-                return singleWordsLexicon[cleanInput];
-            }
-            return `[${cleanInput}]`; // unbekanntes Wort
-        }
-        
-        // --- FALL 2: SATZ (exakter Treffer oder Muster mit Austausch) ---
-        // 2a) Exakte Satzübereinstimmung?
-        let exactMatch = translationExamples.find(ex => ex.de.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"") === cleanInput);
-        if (exactMatch) return exactMatch.ez;
-        
-        // 2b) Beste Vorlage suchen (maximale Wortüberlappung)
-        let bestTemplate = null;
-        let maxOverlap = 0;
-        for (let tmpl of translationExamples) {
-            let tmplWords = tmpl.de.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").split(/\s+/);
-            let overlap = inputWords.filter(w => tmplWords.includes(w)).length;
-            if (overlap > maxOverlap) {
-                maxOverlap = overlap;
-                bestTemplate = tmpl;
-            }
-        }
-        
-        if (bestTemplate && maxOverlap > 0) {
-            let tmplDeWords = bestTemplate.de.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").split(/\s+/);
-            let tmplEzWords = bestTemplate.ez.split(/\s+/);
-            let resultEz = [...tmplEzWords];
-            
-            // Welche Wörter sind neu im Input? (nicht in der Vorlage)
-            let newWords = inputWords.filter(w => !tmplDeWords.includes(w));
-            // Welche Wörter aus der Vorlage fehlen im Input?
-            let missingWords = tmplDeWords.filter(w => !inputWords.includes(w));
-            
-            // Für jedes neue Wort: suche die jesidische Übersetzung aus dem Lexikon
-            for (let newW of newWords) {
-                let newEz = singleWordsLexicon[newW];
-                if (newEz) {
-                    // Ersetze das passende fehlende Wort an seiner Position
-                    for (let i = 0; i < tmplDeWords.length; i++) {
-                        if (missingWords.includes(tmplDeWords[i]) && resultEz[i] && resultEz[i] !== newEz) {
-                            resultEz[i] = newEz;
-                            break;
+        loadingPromise = (async () => {
+            try {
+                const statusDiv = document.getElementById("sheetStatus");
+                statusDiv.innerHTML = "🔄 Lade Wörterbuch aus Google Sheets...";
+                // CSV via fetch (Sheet muss "Jeder mit Link" Ansichtrechte haben)
+                const response = await fetch(SHEET_CSV_URL);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const csvText = await response.text();
+                
+                // CSV parsen (einfache Zeilenaufteilung, Spalten A und B)
+                const rows = csvText.split(/\r?\n/);
+                if (rows.length < 2) throw new Error("Keine Datenzeilen");
+                
+                // Erste Zeile ignorieren (Header: de, ez)
+                for (let i = 1; i < rows.length; i++) {
+                    const line = rows[i].trim();
+                    if (line === "") continue;
+                    // CSV-Zellen: möglicherweise in Anführungszeichen. Vereinfachte Extraktion:
+                    let cells = [];
+                    let inQuote = false;
+                    let current = "";
+                    for (let ch of line) {
+                        if (ch === '"') {
+                            inQuote = !inQuote;
+                        } else if (ch === ',' && !inQuote) {
+                            cells.push(current);
+                            current = "";
+                        } else {
+                            current += ch;
+                        }
+                    }
+                    cells.push(current);
+                    if (cells.length >= 2) {
+                        let german = cells[0].replace(/^"|"$/g, '').trim().toLowerCase();
+                        let yezidi = cells[1].replace(/^"|"$/g, '').trim();
+                        if (german && yezidi) {
+                            dictionary.set(german, yezidi);
                         }
                     }
                 }
+                sheetLoaded = true;
+                statusDiv.innerHTML = `✅ Wörterbuch geladen (${dictionary.size} Einträge)`;
+                console.log(`Dictionary loaded: ${dictionary.size} pairs`);
+            } catch (err) {
+                console.error(err);
+                document.getElementById("sheetStatus").innerHTML = "⚠️ Sheet konnte nicht geladen werden. Nutze nur Fallback-API.";
+                sheetLoaded = false;
             }
-            
-            let translated = resultEz.join(" ");
-            // Falls keine Änderung und trotzdem neue Wörter da -> Fallback Wort-für-Wort
-            if (translated === bestTemplate.ez && newWords.length > 0) {
-                return inputWords.map(w => singleWordsLexicon[w] || `[${w}]`).join(" ");
-            }
-            return translated;
-        }
-        
-        // 2c) Fallback: Wort-für-Wort aus dem Lexikon
-        return inputWords.map(w => singleWordsLexicon[w] || `[${w}]`).join(" ");
+        })();
+        return loadingPromise;
     }
     
-    // ======================== UI-LOGIK ========================
-    const searchInput = document.getElementById("searchInput");
-    const autocompleteList = document.getElementById("autocomplete-list");
-    let searchTimeout = null;
-    
-    // Autocomplete: deutsche Wörter aus dem Lexikon vorschlagen
-    searchInput.addEventListener("input", function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(performSearch, 300);
-        const val = this.value.toLowerCase();
-        if (!val) { autocompleteList.style.display = "none"; return; }
-        const matches = allWordsList.filter(w => w.startsWith(val)).slice(0, 5);
-        if (matches.length) {
-            autocompleteList.innerHTML = matches.map(m => `<div class="autocomplete-item" data-word="${m}">${m} ⇄ ${singleWordsLexicon[m]}</div>`).join("");
-            autocompleteList.style.display = "block";
-            document.querySelectorAll(".autocomplete-item").forEach(el => {
-                el.addEventListener("click", () => {
-                    searchInput.value = el.dataset.word;
-                    autocompleteList.style.display = "none";
-                    performSearch();
-                });
+    // --------------------------------------------------------------
+    // 4. Fallback: Übersetzung Deutsch → Kurdisch (Kurmanji) via öffentliche API
+    //    (myMemory / LibreTranslate-ähnlich; oder freier Google Translate Proxy)
+    //    Wir verwenden myMemory (kostenlos, kein API-Key, unterstützt Kurdish)
+    // --------------------------------------------------------------
+    async function translateGermanToKurmanji(germanText) {
+        try {
+            // myMemory API: einfach & stabil für niedrige Frequenz
+            const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(germanText)}&langpair=de|ku`;
+            const resp = await fetch(url);
+            const data = await resp.json();
+            if (data && data.responseData && data.responseData.translatedText) {
+                let translation = data.responseData.translatedText;
+                // Manchmal gibt myMemory den Satz unverändert zurück, wenn keine Übersetzung existiert
+                if (translation && translation.toLowerCase() !== germanText.toLowerCase()) {
+                    return translation;
+                }
+            }
+            // Fallback: öffentlicher LibreTranslate Mirror (optional)
+            const libreUrl = "https://translate.mentality.rip/translate";
+            const libreResp = await fetch(libreUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    q: germanText,
+                    source: "de",
+                    target: "ku",
+                    format: "text"
+                })
             });
-        } else autocompleteList.style.display = "none";
-    });
-    document.addEventListener("click", (e) => { if(e.target !== searchInput) autocompleteList.style.display = "none"; });
-    
-    async function performSearch() {
-        const query = searchInput.value.trim();
-        const banner = document.getElementById("sentence-banner");
-        const translationDiv = document.getElementById("sentence-translation");
-        const resultsDiv = document.getElementById("search-results");
-        
-        if (!query) {
-            banner.style.display = "none";
-            resultsDiv.innerHTML = "";
-            return;
+            if (libreResp.ok) {
+                const libreData = await libreResp.json();
+                if (libreData && libreData.translatedText) return libreData.translatedText;
+            }
+            return null;
+        } catch (err) {
+            console.warn("Übersetzungs-API fehlgeschlagen", err);
+            return null;
         }
+    }
+    
+    // --------------------------------------------------------------
+    // 5. Hauptlogik: Satz in Wörter zergliedern, jedes Wort prüfen
+    //    (fallback für einzelne Wörter und Phrasen – einfacher tokenbasierter Ansatz)
+    // --------------------------------------------------------------
+    async function translatePhrase(germanSentence) {
+        if (!germanSentence.trim()) return "";
         
-        const translation = translateLocalSmart(query);
-        translationDiv.innerHTML = translation;
-        banner.style.display = "block";
+        const words = germanSentence.split(/(\s+|[.,!?;:])/); // Behalte Leerzeichen & Interpunktion
         
-        // Detailinfo zum ersten bekannten Wort (für Vorschau)
-        let bestMatch = null;
-        let words = query.toLowerCase().split(/\s+/);
-        for (let w of words) {
-            if (singleWordsLexicon[w]) {
-                bestMatch = { de: w, ez: singleWordsLexicon[w] };
+        let translatedParts = [];
+        let usedFallbackForAny = false;
+        
+        for (let token of words) {
+            // Wenn Leerzeichen oder Satzzeichen → unverändert übernehmen
+            if (/^\s+$/.test(token) || /^[.,!?;:]+$/.test(token)) {
+                translatedParts.push(token);
+                continue;
+            }
+            
+            const lowerToken = token.toLowerCase();
+            // Exakte Übereinstimmung im Wörterbuch?
+            if (dictionary.has(lowerToken)) {
+                translatedParts.push(dictionary.get(lowerToken));
+            } 
+            else {
+                // Kein Treffer: verwende API (gesamt? Für Phrasen besser den ganzen Satz zu übersetzen
+                // aber um Ressourcen zu sparen: Falls noch kein Fallback für diesen Satz, mache eine Gesamtübersetzung)
+                // Optimierung: Wenn mitten im Satz ein unbekanntes Wort vorkommt, übersetzen wir den gesamten Satz einmalig.
+                // Aber dafür müssen wir den Fallback cache pro Satz aufrufen.
+                usedFallbackForAny = true;
+                // Speziell: Falls wir eine Phrase als Ganzes übersetzen müssen (bessere Qualität)
+                // Wir unterbrechen und rufen die API für den gesamten Satz auf.
+                // Dieser Fall wird unten behandelt.
+                translatedParts = null; // Markiere, dass wir den kompletten Satz übersetzen.
                 break;
             }
         }
-        if (bestMatch) {
-            resultsDiv.innerHTML = `
-                <div class="result-card">
-                    <div class="flex-between">
-                        <div>
-                            <span class="badge">📖 Vokabelinfo</span>
-                            <div class="word-ez"><span class="lang-badge" style="background:var(--ez-color);">Jesidisch</span> ${bestMatch.ez}</div>
-                            <div class="word-de"><span class="lang-badge" style="background:var(--de-color);">Deutsch</span> ${bestMatch.de}</div>
-                        </div>
-                        <div><button onclick="playAudio('${bestMatch.de}')">🔊 DE</button></div>
-                    </div>
-                </div>
-            `;
+        
+        // Wenn jedes Wort einzeln im Dict war -> zusammensetzen
+        if (translatedParts !== null) {
+            let final = translatedParts.join('');
+            final = toJesidicScript(final);
+            return { text: final, usedFallback: usedFallbackForAny };
+        }
+        
+        // Vollständige Satzübersetzung via API (Deutsch -> Kurdisch)
+        let apiTranslation = await translateGermanToKurmanji(germanSentence);
+        if (apiTranslation) {
+            let converted = toJesidicScript(apiTranslation);
+            return { text: converted, usedFallback: true };
         } else {
-            resultsDiv.innerHTML = `<div class="result-card">ℹ️ Keine passende Vokabel im Lexikon gefunden.</div>`;
+            return { text: "[Übersetzung nicht verfügbar – bitte später versuchen]", usedFallback: false };
         }
     }
     
-    function playAudio(text) {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "de-DE";
-        speechSynthesis.cancel();
-        speechSynthesis.speak(u);
-    }
+    // --------------------------------------------------------------
+    // UI Handling
+    // --------------------------------------------------------------
+    let isTranslating = false;
+    const translateBtn = document.getElementById("translateBtn");
+    const inputField = document.getElementById("germanInput");
+    const outputDiv = document.getElementById("translationOutput");
+    const infoNoteDiv = document.getElementById("infoNote");
     
-    // Wort des Tages (aus den Einzelwörtern)
-    function updateWordOfDay() {
-        if (allWordsList.length === 0) return;
-        const idx = new Date().getDate() % allWordsList.length;
-        const deWord = allWordsList[idx];
-        const ezWord = singleWordsLexicon[deWord];
-        document.getElementById("daily-ez").innerText = ezWord || "?";
-        document.getElementById("daily-de").innerText = deWord;
-    }
-    
-    // Quiz (aus Einzelwörtern)
-    let currentQuizWord = "";
-    function initQuiz() {
-        if (allWordsList.length === 0) return;
-        const correctDe = allWordsList[Math.floor(Math.random() * allWordsList.length)];
-        const correctEz = singleWordsLexicon[correctDe];
-        currentQuizWord = correctDe;
-        let opts = [correctEz];
-        while(opts.length < 4) {
-            let randDe = allWordsList[Math.floor(Math.random() * allWordsList.length)];
-            let randEz = singleWordsLexicon[randDe];
-            if (!opts.includes(randEz)) opts.push(randEz);
+    async function performTranslation() {
+        if (isTranslating) return;
+        const text = inputField.value.trim();
+        if (!text) {
+            outputDiv.innerHTML = "✏️ Bitte deutschen Text eingeben.";
+            infoNoteDiv.innerHTML = "";
+            return;
         }
-        opts.sort(() => Math.random() - 0.5);
-        document.getElementById("quiz-question").innerHTML = `Was bedeutet <strong style="color:var(--primary)">${correctDe}</strong>?`;
-        const optsDiv = document.getElementById("quiz-options");
-        optsDiv.innerHTML = "";
-        document.getElementById("quiz-feedback").innerHTML = "";
-        opts.forEach(opt => {
-            const btn = document.createElement("button");
-            btn.className = "quiz-option";
-            btn.innerText = opt;
-            btn.onclick = () => {
-                const isCorrect = (opt === correctEz);
-                btn.classList.add(isCorrect ? "correct" : "wrong");
-                document.getElementById("quiz-feedback").innerHTML = isCorrect ? "✅ Richtig!" : `❌ Falsch! Richtig: ${correctEz}`;
-                document.querySelectorAll("#quiz-options button").forEach(b => b.disabled = true);
-            };
-            optsDiv.appendChild(btn);
+        
+        isTranslating = true;
+        translateBtn.disabled = true;
+        translateBtn.innerHTML = '<span class="loader"></span> Übersetzung läuft...';
+        outputDiv.innerHTML = "Übersetze...";
+        infoNoteDiv.innerHTML = "";
+        
+        try {
+            await loadSheetDictionary(); // sicherstellen, dass Wörterbuch bereit ist
+            const result = await translatePhrase(text);
+            outputDiv.innerHTML = escapeHtml(result.text);
+            if (result.usedFallback) {
+                infoNoteDiv.innerHTML = '<div class="fallback-note">🌍 Teilweise oder vollständig aus dem Kurdischen (Kurmanji) übersetzt & jesidisch angepasst.</div>';
+            } else {
+                if (dictionary.size === 0) {
+                    infoNoteDiv.innerHTML = '<div class="fallback-note">ℹ️ Wörterbuch nicht geladen – Übersetzung stammt aus API.</div>';
+                } else {
+                    infoNoteDiv.innerHTML = '<div class="fallback-note">✅ Direkt aus dem Jesidisch-Wörterbuch übersetzt.</div>';
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            outputDiv.innerHTML = "⚠️ Fehler bei der Übersetzung. Siehe Konsole.";
+            infoNoteDiv.innerHTML = '<div class="error">Netzwerkproblem oder API nicht erreichbar.</div>';
+        } finally {
+            isTranslating = false;
+            translateBtn.disabled = false;
+            translateBtn.innerHTML = '✨ Übersetzen';
+        }
+    }
+    
+    // Hilfsfunktion Escape
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
         });
     }
-    document.getElementById("nextQuizBtn")?.addEventListener("click", initQuiz);
     
-    // Themes & Schrift
-    function applyTheme(theme) {
-        document.body.classList.remove("oled","lalish");
-        if(theme === "oled") document.body.classList.add("oled");
-        if(theme === "lalish") document.body.classList.add("lalish");
-        localStorage.setItem("theme", theme);
+    // Beispieltexte
+    function loadExample() {
+        inputField.value = "Hallo, wie geht es dir?";
+        performTranslation();
     }
-    function setFontSize(px) {
-        document.documentElement.style.setProperty("--font-size", px+"px");
-        document.getElementById("fontSizeValue").innerText = px+"px";
-        localStorage.setItem("fontSize", px);
-    }
-    const savedTheme = localStorage.getItem("theme") || "default";
-    applyTheme(savedTheme);
-    document.getElementById("themeSelect").value = savedTheme;
-    document.getElementById("themeSelect").addEventListener("change", e => applyTheme(e.target.value));
-    const savedFont = localStorage.getItem("fontSize") || "16";
-    document.getElementById("fontSizeSlider").value = savedFont;
-    setFontSize(savedFont);
-    document.getElementById("fontSizeSlider").addEventListener("input", e => setFontSize(e.target.value));
-    document.getElementById("shareAppBtn")?.addEventListener("click", () => {
-        if(navigator.share) navigator.share({title:"EZ-DE-Translator", text:"Stabile Baukasten-Engine für Jesidisch", url:location.href});
-        else alert("App speichern oder teilen.");
-    });
-    document.getElementById("resetBtn")?.addEventListener("click", () => location.reload());
     
-    // Tab Navigation
-    function switchTab(tabId) {
-        document.querySelectorAll(".container").forEach(c => c.classList.remove("active"));
-        document.getElementById(`tab-${tabId}`).classList.add("active");
-        document.querySelectorAll(".nav-item").forEach(btn => btn.classList.remove("active"));
-        document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add("active");
-        if(tabId === "quiz") initQuiz();
+    function clearAll() {
+        inputField.value = "";
+        outputDiv.innerHTML = "—";
+        infoNoteDiv.innerHTML = "";
     }
-    document.querySelectorAll(".nav-item").forEach(btn => {
-        btn.addEventListener("click", (e) => switchTab(btn.dataset.tab));
-    });
     
-    // Start
-    loadTranslationData().then(() => {
-        if (searchInput.value.trim()) performSearch();
-    });
+    // Event-Listener
+    translateBtn.addEventListener("click", performTranslation);
+    document.getElementById("swapBtn").addEventListener("click", loadExample);
+    document.getElementById("clearBtn").addEventListener("click", clearAll);
+    
+    // Vorab das Wörterbuch im Hintergrund laden
+    loadSheetDictionary().catch(console.warn);
 </script>
 </body>
 </html>
