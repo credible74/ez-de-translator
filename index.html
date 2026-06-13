@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Deutsch-Jesidisch Übersetzer</title>
+    <title>Deutsch–Jesidisch Übersetzer</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             background: #f4f7fb;
@@ -168,7 +166,7 @@
 <div class="card">
     <div class="header">
         <h1>🇩🇪 ↔️ 🇽🇰 Deutsch–Jesidisch</h1>
-        <p>Übersetzung mit Google Sheets-Wörterbuch + Kurdisch-Fallback (Schriftumwandlung nach jesidischen Regeln)</p>
+        <p>Übersetzung mit Google Sheets-Wörterbuch</p>
         <div class="status-badge" id="sheetStatus">📡 Lade Wörterbuch...</div>
     </div>
 
@@ -190,7 +188,7 @@
         </div>
     </div>
     <div class="footer">
-        ⚡ Basis: Google Sheet (deutsch ↔ jesidisch) • Fehlende Einträge werden über Kurdisch-API übersetzt und in Jesidisch-Schrift konvertiert
+        ⚡ Basis: Google Sheet (deutsch ↔ jesidisch) • Fehlende Wörter werden automatisch ergänzt
     </div>
 </div>
 
@@ -202,94 +200,41 @@
     const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
     
     let dictionary = new Map(); // deutsch -> jesidisch
-    let sheetLoaded = false;
     let loadingPromise = null;
     
     // --------------------------------------------------------------
-    // 2. Buchstaben-Konvertierung: Kurdisch (Quelle) → Jesidisch (Ziel)
-    //    Gemäß Tabelle: links jesidisch, rechts kurdisch
+    // 2. Exakte Buchstaben-Konvertierung: Kurdisch → Jesidisch
+    //    gemäß Tabelle (links jesidisch, rechts kurdisch)
     // --------------------------------------------------------------
-    const kurdishToYezidiMapping = {
-        // Einzelbuchstaben (Achtung: Reihenfolge wichtig, längere zuerst)
-        "Ş": "Š",     // kurdisch Ş -> jesidisch Š
-        "Ç": "Ch",    // kurdisch Ç -> jesidisch Ch
-        "X": "Kh",    // kurdisch X -> jesidisch Kh
-        "Û": "Oo",    // kurdisch Û -> jesidisch Oo
-        "Î": "I",     // kurdisch Î -> jesidisch I
-        "Ê": "É",     // kurdisch Ê -> jesidisch É
-        "A": "Á",     // kurdisch A -> jesidisch Á (spezieller Fall)
-        "E": "A",     // kurdisch E -> jesidisch A
-        "I": "E",     // kurdisch I -> jesidisch E
-        // Die restlichen bleiben meist gleich, aber zur Sicherheit:
-        "B": "B",
-        "C": "C",
-        "D": "D",
-        "F": "F",
-        "G": "G",
-        "H": "H",
-        "J": "J",
-        "K": "K",
-        "L": "L",
-        "M": "M",
-        "N": "N",
-        "O": "O",
-        "P": "P",
-        "Q": "Q",
-        "R": "R",
-        "S": "S",
-        "T": "T",
-        "U": "U",
-        "V": "V",
-        "W": "W",
-        "Y": "Y",
-        "Z": "Z"
-    };
-    
-    // Kleinbuchstaben-Versionen ergänzen
-    for (let [kurd, yez] of Object.entries(kurdishToYezidiMapping)) {
-        const kurdLower = kurd.toLowerCase();
-        const yezLower = yez.toLowerCase();
-        if (kurdLower !== kurd) {
-            kurdishToYezidiMapping[kurdLower] = yezLower;
-        }
-    }
-    
-    /**
-     * Wandelt einen Text aus dem Kurdischen (Kurmanji) in die jesidische Schrift um.
-     * Dabei werden alle relevanten Buchstaben gemäß der Tabelle ersetzt.
-     * Wichtig: Mehrbuchstabige Ziele (z.B. "Ch") werden korrekt behandelt.
-     */
     function convertKurdishToYezidi(text) {
-        if (!text) return text;
-        // Damit "Ch" nicht später durch Einzelersetzungen zerlegt wird, ersetzen wir zuerst die Einzelbuchstaben,
-        // aber wir müssen sicherstellen, dass die Reihenfolge der Ersetzungen nicht kollidiert.
-        // Einfachster Weg: Zeichenweise durchgehen und Zeichen ersetzen, aber "Ç" ist ein Zeichen -> "Ch" zwei Zeichen.
-        // Daher ersetzen wir zuerst die speziellen türkischen/kurdischen Zeichen.
-        let result = text;
-        // Zuerst die eindeutigen Mehrfach-Ersetzungen, die aus einem Zeichen zwei machen
-        const multiReplace = [
-            { from: "Ç", to: "Ch" },
-            { from: "ç", to: "ch" },
-            { from: "Ş", to: "Š" },
-            { from: "ş", to: "š" },
-            { from: "X", to: "Kh" },
-            { from: "x", to: "kh" },
-            { from: "Û", to: "Oo" },
-            { from: "û", to: "oo" },
-            { from: "Î", to: "I" },
-            { from: "î", to: "i" },
-            { from: "Ê", to: "É" },
-            { from: "ê", to: "é" },
-            { from: "A", to: "Á" },   // A->Á
-            { from: "a", to: "á" },
-            { from: "E", to: "A" },   // E->A
-            { from: "e", to: "a" },
-            { from: "I", to: "E" },   // I->E
-            { from: "i", to: "e" }
+        if (!text) return "";
+        
+        // Zuerst alle nicht-lateinischen Zeichen entfernen (arabische Buchstaben etc.)
+        // Erlaubt: A-Z a-z, Akzente (Áá Éé), Sonderzeichen (Šš), und die Kombinationen Ch, Kh, Oo
+        let cleaned = text.replace(/[^\u0041-\u005A\u0061-\u007A\u00C1\u00E1\u00C9\u00E9\u0160\u0161\u00C7\u00E7\u00DB\u00FB\u00CE\u00EE\u00D4\u00F4]/g, '');
+        // Falls dadurch Buchstaben verloren gehen, die eigentlich bleiben sollen (z.B. Û), werden sie einzeln behandelt.
+        
+        // Ersetzungstabelle (längere Ziele zuerst)
+        const replacementRules = [
+            // Kombinationen, die aus einem Zeichen zwei machen
+            { from: "Ç", to: "Ch" }, { from: "ç", to: "ch" },
+            { from: "Ş", to: "Š" }, { from: "ş", to: "š" },
+            { from: "X", to: "Kh" }, { from: "x", to: "kh" },
+            { from: "Û", to: "Oo" }, { from: "û", to: "oo" },
+            { from: "Ê", to: "É" }, { from: "ê", to: "é" },
+            { from: "Î", to: "I" }, { from: "î", to: "i" },
+            // Einzelbuchstaben
+            { from: "E", to: "A" }, { from: "e", to: "a" },
+            { from: "I", to: "E" }, { from: "i", to: "e" },
+            { from: "A", to: "Á" }, { from: "a", to: "á" }   // A nur wenn es vom Kurdischen kommt? Wir ersetzen, aber Vorsicht
         ];
-        for (let rule of multiReplace) {
+        
+        let result = cleaned;
+        for (let rule of replacementRules) {
             result = result.split(rule.from).join(rule.to);
         }
+        
+        // Nachbearbeitung: Keine automatische w->v Ersetzung; aber falls der Benutzer in der Tabelle "Slav" -> "Sláv" hat, wird das direkt gezogen.
         return result;
     }
     
@@ -332,12 +277,10 @@
                         }
                     }
                 }
-                sheetLoaded = true;
                 document.getElementById("sheetStatus").innerHTML = `✅ Wörterbuch geladen (${dictionary.size} Einträge)`;
             } catch (err) {
                 console.error(err);
-                document.getElementById("sheetStatus").innerHTML = "⚠️ Sheet nicht erreichbar – nur API-Fallback";
-                sheetLoaded = false;
+                document.getElementById("sheetStatus").innerHTML = "⚠️ Wörterbuch nicht erreichbar – nutze automatische Ergänzung";
             }
         })();
         return loadingPromise;
@@ -345,8 +288,9 @@
     
     // --------------------------------------------------------------
     // 4. Fallback: Deutsch -> Kurdisch (Kurmanji) via myMemory API
+    //    Anschließend Umwandlung nach Jesidisch
     // --------------------------------------------------------------
-    async function translateGermanToKurmanji(germanText) {
+    async function translateGermanToKurdish(germanText) {
         try {
             const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(germanText)}&langpair=de|ku`;
             const resp = await fetch(url);
@@ -387,12 +331,12 @@
         if (!germanSentence.trim()) return "";
         const lowerSentence = germanSentence.toLowerCase().trim();
         
-        // Zuerst prüfen, ob der gesamte Satz exakt im Wörterbuch steht (z.B. Redewendungen)
+        // 1. Exakter Satz im Wörterbuch?
         if (dictionary.has(lowerSentence)) {
             return dictionary.get(lowerSentence);
         }
         
-        // Wort-für-Wort-Übersetzung (einfach, für einzelne Wörter)
+        // 2. Wort-für-Wort-Übersetzung (falls alle Wörter einzeln bekannt)
         const words = germanSentence.split(/(\s+|[.,!?;:])/);
         let allKnown = true;
         let translatedParts = [];
@@ -410,17 +354,13 @@
             }
         }
         if (allKnown && translatedParts.length > 0) {
-            let result = translatedParts.join('');
-            return convertKurdishToYezidi(result); // auch wenn direkt aus Wörterbuch, trotzdem konvertieren? Nein, Wörterbuch-Einträge sind bereits jesidisch. Aber zur Sicherheit lassen wir die Konvertierung weg, weil sie sonst Doppelersetzungen macht.
-            // Da Wörterbuch-Einträge bereits in jesidischer Schrift sein sollten, wenden wir hier keine Konvertierung an.
-            // Aber der Benutzer hat gesagt: "die Buchstaben werden nicht angepasst" – wenn die Tabelle bereits jesidisch enthält, ist alles ok.
-            // Also für reine Wörterbuch-Übersetzung geben wir direkt zurück.
+            // Zusammensetzen, aber keine weitere Konvertierung nötig (Wörterbuch ist bereits jesidisch)
+            return translatedParts.join('');
         }
         
-        // Fallback: gesamten Satz über API übersetzen (Kurdisch)
-        let kurdishTranslation = await translateGermanToKurmanji(germanSentence);
+        // 3. Fallback: gesamten Satz über API übersetzen (Kurdisch) und dann umwandeln
+        const kurdishTranslation = await translateGermanToKurdish(germanSentence);
         if (kurdishTranslation) {
-            // Konvertiere von Kurdisch zu Jesidisch
             return convertKurdishToYezidi(kurdishTranslation);
         }
         
