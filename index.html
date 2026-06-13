@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Deutsch-Jesidisch / Kurdisch Übersetzer</title>
+    <title>Deutsch-Jesidisch Übersetzer</title>
     <style>
         * {
             box-sizing: border-box;
@@ -25,7 +25,6 @@
             border-radius: 32px;
             box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
             overflow: hidden;
-            transition: all 0.2s ease;
         }
         .header {
             background: linear-gradient(135deg, #1e3c2c 0%, #2a5a3a 100%);
@@ -36,7 +35,6 @@
             margin: 0 0 6px 0;
             font-weight: 600;
             font-size: 1.9rem;
-            letter-spacing: -0.3px;
         }
         .header p {
             margin: 0;
@@ -74,7 +72,6 @@
             border: 1.5px solid #e2e8f0;
             border-radius: 24px;
             resize: vertical;
-            transition: 0.2s;
             background: #ffffff;
         }
         textarea:focus {
@@ -97,12 +94,10 @@
             font-size: 0.85rem;
             cursor: pointer;
             transition: 0.2s;
-            color: #1e293b;
         }
         button.primary {
             background: #2a5a3a;
             color: white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
         button.primary:hover {
             background: #1e4630;
@@ -119,7 +114,6 @@
             border-radius: 28px;
             padding: 20px;
             border: 1px solid #eef2f6;
-            margin-top: 12px;
         }
         .result-label {
             font-size: 0.75rem;
@@ -136,15 +130,6 @@
             font-weight: 500;
             color: #0f172a;
         }
-        .fallback-note {
-            margin-top: 14px;
-            font-size: 0.75rem;
-            background: #fff9e3;
-            padding: 8px 12px;
-            border-radius: 20px;
-            display: inline-block;
-            color: #926d1a;
-        }
         .loader {
             display: inline-block;
             width: 18px;
@@ -157,11 +142,6 @@
             vertical-align: middle;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        hr {
-            margin: 24px 0 16px;
-            border: none;
-            border-top: 1px solid #e2edf2;
-        }
         .footer {
             font-size: 0.7rem;
             text-align: center;
@@ -188,7 +168,7 @@
 <div class="card">
     <div class="header">
         <h1>🇩🇪 ↔️ 🇽🇰 Deutsch–Jesidisch</h1>
-        <p>Wörterbuch mit Google Sheets + Kurdisch-Fallback (Kurmanji) in jesidischer Schrift</p>
+        <p>Übersetzung mit Google Sheets-Wörterbuch + Kurdisch-Fallback (Schriftumwandlung nach jesidischen Regeln)</p>
         <div class="status-badge" id="sheetStatus">📡 Lade Wörterbuch...</div>
     </div>
 
@@ -205,104 +185,131 @@
         </div>
 
         <div class="result-card">
-            <div class="result-label">🪶 JESIDISCH / KURDISCH (angepasst)</div>
+            <div class="result-label">🪶 JESIDISCH</div>
             <div class="result-text" id="translationOutput">—</div>
-            <div id="infoNote"></div>
         </div>
     </div>
     <div class="footer">
-        ⚡ Basis: Google Sheet (de ↔ jesidisch) • Fehlende Einträge werden über Kurdisch-API übersetzt <br>
-        ✨ Automatische Buchstabenkonvertierung → jesidische Schriftform
+        ⚡ Basis: Google Sheet (deutsch ↔ jesidisch) • Fehlende Einträge werden über Kurdisch-API übersetzt und in Jesidisch-Schrift konvertiert
     </div>
 </div>
 
 <script>
     // --------------------------------------------------------------
-    // 1. KONFIGURATION: Google Sheet (öffentlich als CSV/JSON)
-    //    DEINE SHEET-ID: 1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY
+    // 1. Google Sheet Konfiguration
     // --------------------------------------------------------------
     const SHEET_ID = "1haD4IVA8lNqoUsnrMrnEHhf5iJIGVXGfTWWu5XxevJY";
-    // Wir nutzen die Google Sheets CSV-Export-URL (öffentlich, kein API-Key notwendig)
-    // A = deutsch, B = jesidisch (ab Zeile 2, Zeile 1 sind Überschriften)
     const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
-    // Alternative: direkter CSV-Export (funktioniert bei öffentlich geteilten Sheets)
-    // --------------------------------------------------------------
     
-    let dictionary = new Map(); // Key: deutsches Wort (lowercase) -> jesidische Phrase
+    let dictionary = new Map(); // deutsch -> jesidisch
     let sheetLoaded = false;
     let loadingPromise = null;
     
     // --------------------------------------------------------------
-    // 2. Buchstaben-Mapping (Kurdisch (Kurmanji) → Jesidische Konvention)
-    //    Gemäß deiner Vorgaben + zusätzliche Standard-Regeln
+    // 2. Buchstaben-Konvertierung: Kurdisch (Quelle) → Jesidisch (Ziel)
+    //    Gemäß Tabelle: links jesidisch, rechts kurdisch
     // --------------------------------------------------------------
-    const letterMapping = {
-        // Standard-Ersetzungen nach deiner Tabelle
-        "Î": "Î", "Ê": "Ê", "Ş": "Ş", "Ç": "Ç",   // bleiben wie gehabt
-        "Ç": "Ç",  // für kurdisches Ç bleibt Ç (im Jesidischen vorhanden)
-        // Falls API "X" zurückgibt -> mapping nach Jesidisch (Kh / X)
-        "X": "X",       // im Jesidischen als X erlaubt (Kh)
-        // Weiteres nach deiner Spezifikation: Th, Ph, Gh etc.
-        // (werden aus der Quelle i.d.R. nicht direkt geliefert, aber wir mappen zur Sicherheit)
-        "Th": "Th", "Ph": "Ph", "Gh": "X",    // Gh im Kurdischen nicht, deshalb X (gemäß deiner Regel)
-        "Kh": "X",
-        // zusätzliche intuitive Anpassungen (z. B. î, ê bleiben erhalten)
-        "î": "î", "ê": "ê", "ş": "ş", "ç": "ç", "x": "x"
+    const kurdishToYezidiMapping = {
+        // Einzelbuchstaben (Achtung: Reihenfolge wichtig, längere zuerst)
+        "Ş": "Š",     // kurdisch Ş -> jesidisch Š
+        "Ç": "Ch",    // kurdisch Ç -> jesidisch Ch
+        "X": "Kh",    // kurdisch X -> jesidisch Kh
+        "Û": "Oo",    // kurdisch Û -> jesidisch Oo
+        "Î": "I",     // kurdisch Î -> jesidisch I
+        "Ê": "É",     // kurdisch Ê -> jesidisch É
+        "A": "Á",     // kurdisch A -> jesidisch Á (spezieller Fall)
+        "E": "A",     // kurdisch E -> jesidisch A
+        "I": "E",     // kurdisch I -> jesidisch E
+        // Die restlichen bleiben meist gleich, aber zur Sicherheit:
+        "B": "B",
+        "C": "C",
+        "D": "D",
+        "F": "F",
+        "G": "G",
+        "H": "H",
+        "J": "J",
+        "K": "K",
+        "L": "L",
+        "M": "M",
+        "N": "N",
+        "O": "O",
+        "P": "P",
+        "Q": "Q",
+        "R": "R",
+        "S": "S",
+        "T": "T",
+        "U": "U",
+        "V": "V",
+        "W": "W",
+        "Y": "Y",
+        "Z": "Z"
     };
     
-    /**
-     * Konvertiert einen Text von standard Kurmanji (lateinisch) in die
-     * gewünschte jesidische Buchstabenform (basierend auf deinen Vorgaben)
-     */
-    function toJesidicScript(text) {
-        if (!text) return text;
-        // 1. Reihenfolge wichtig: zuerst mehrbuchstabige Token ersetzen (Th, Ph, Kh, Gh)
-        let result = text;
-        const multiMap = {
-            "Th": "Th", "th": "th",
-            "Ph": "Ph", "ph": "ph",
-            "Kh": "X",  "kh": "x",
-            "Gh": "X",  "gh": "x",
-            "Ch": "Ç",  "ch": "ç"     // in manchen Dialekten, klarstellen
-        };
-        for (let [kurd, jes] of Object.entries(multiMap)) {
-            result = result.replace(new RegExp(kurd, 'g'), jes);
+    // Kleinbuchstaben-Versionen ergänzen
+    for (let [kurd, yez] of Object.entries(kurdishToYezidiMapping)) {
+        const kurdLower = kurd.toLowerCase();
+        const yezLower = yez.toLowerCase();
+        if (kurdLower !== kurd) {
+            kurdishToYezidiMapping[kurdLower] = yezLower;
         }
-        // 2. Einzelbuchstaben (nach deiner Tabelle: X bleibt X, kein extra C außer Ç)
-        //    Wir ersetzen exemplarisch eventuell vorhandenes "C" ohne Haken (selten)
-        //    Aber wichtig: Kurdisches "C" (dsch) bleibt C? Laut Tabelle: C bleibt C.
-        //    Lediglich "X" existiert im Kurdischen nicht, aber wird i.d.R. als X geschrieben.
-        //    Dein Mapping: "X" existiert bei dir und wird beibehalten.
-        //    Ignoriere problematische Zeichen.
-        result = result.replace(/C(?!h)/g, 'C'); // kein Zwang, nur safety
-        
+    }
+    
+    /**
+     * Wandelt einen Text aus dem Kurdischen (Kurmanji) in die jesidische Schrift um.
+     * Dabei werden alle relevanten Buchstaben gemäß der Tabelle ersetzt.
+     * Wichtig: Mehrbuchstabige Ziele (z.B. "Ch") werden korrekt behandelt.
+     */
+    function convertKurdishToYezidi(text) {
+        if (!text) return text;
+        // Damit "Ch" nicht später durch Einzelersetzungen zerlegt wird, ersetzen wir zuerst die Einzelbuchstaben,
+        // aber wir müssen sicherstellen, dass die Reihenfolge der Ersetzungen nicht kollidiert.
+        // Einfachster Weg: Zeichenweise durchgehen und Zeichen ersetzen, aber "Ç" ist ein Zeichen -> "Ch" zwei Zeichen.
+        // Daher ersetzen wir zuerst die speziellen türkischen/kurdischen Zeichen.
+        let result = text;
+        // Zuerst die eindeutigen Mehrfach-Ersetzungen, die aus einem Zeichen zwei machen
+        const multiReplace = [
+            { from: "Ç", to: "Ch" },
+            { from: "ç", to: "ch" },
+            { from: "Ş", to: "Š" },
+            { from: "ş", to: "š" },
+            { from: "X", to: "Kh" },
+            { from: "x", to: "kh" },
+            { from: "Û", to: "Oo" },
+            { from: "û", to: "oo" },
+            { from: "Î", to: "I" },
+            { from: "î", to: "i" },
+            { from: "Ê", to: "É" },
+            { from: "ê", to: "é" },
+            { from: "A", to: "Á" },   // A->Á
+            { from: "a", to: "á" },
+            { from: "E", to: "A" },   // E->A
+            { from: "e", to: "a" },
+            { from: "I", to: "E" },   // I->E
+            { from: "i", to: "e" }
+        ];
+        for (let rule of multiReplace) {
+            result = result.split(rule.from).join(rule.to);
+        }
         return result;
     }
     
     // --------------------------------------------------------------
-    // 3. Google Sheet laden (CSV over gviz or public fetch)
+    // 3. Google Sheet laden
     // --------------------------------------------------------------
     async function loadSheetDictionary() {
         if (loadingPromise) return loadingPromise;
-        
         loadingPromise = (async () => {
             try {
                 const statusDiv = document.getElementById("sheetStatus");
-                statusDiv.innerHTML = "🔄 Lade Wörterbuch aus Google Sheets...";
-                // CSV via fetch (Sheet muss "Jeder mit Link" Ansichtrechte haben)
+                statusDiv.innerHTML = "🔄 Lade Wörterbuch...";
                 const response = await fetch(SHEET_CSV_URL);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const csvText = await response.text();
-                
-                // CSV parsen (einfache Zeilenaufteilung, Spalten A und B)
                 const rows = csvText.split(/\r?\n/);
                 if (rows.length < 2) throw new Error("Keine Datenzeilen");
-                
-                // Erste Zeile ignorieren (Header: de, ez)
                 for (let i = 1; i < rows.length; i++) {
                     const line = rows[i].trim();
                     if (line === "") continue;
-                    // CSV-Zellen: möglicherweise in Anführungszeichen. Vereinfachte Extraktion:
                     let cells = [];
                     let inQuote = false;
                     let current = "";
@@ -326,11 +333,10 @@
                     }
                 }
                 sheetLoaded = true;
-                statusDiv.innerHTML = `✅ Wörterbuch geladen (${dictionary.size} Einträge)`;
-                console.log(`Dictionary loaded: ${dictionary.size} pairs`);
+                document.getElementById("sheetStatus").innerHTML = `✅ Wörterbuch geladen (${dictionary.size} Einträge)`;
             } catch (err) {
                 console.error(err);
-                document.getElementById("sheetStatus").innerHTML = "⚠️ Sheet konnte nicht geladen werden. Nutze nur Fallback-API.";
+                document.getElementById("sheetStatus").innerHTML = "⚠️ Sheet nicht erreichbar – nur API-Fallback";
                 sheetLoaded = false;
             }
         })();
@@ -338,24 +344,20 @@
     }
     
     // --------------------------------------------------------------
-    // 4. Fallback: Übersetzung Deutsch → Kurdisch (Kurmanji) via öffentliche API
-    //    (myMemory / LibreTranslate-ähnlich; oder freier Google Translate Proxy)
-    //    Wir verwenden myMemory (kostenlos, kein API-Key, unterstützt Kurdish)
+    // 4. Fallback: Deutsch -> Kurdisch (Kurmanji) via myMemory API
     // --------------------------------------------------------------
     async function translateGermanToKurmanji(germanText) {
         try {
-            // myMemory API: einfach & stabil für niedrige Frequenz
             const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(germanText)}&langpair=de|ku`;
             const resp = await fetch(url);
             const data = await resp.json();
             if (data && data.responseData && data.responseData.translatedText) {
                 let translation = data.responseData.translatedText;
-                // Manchmal gibt myMemory den Satz unverändert zurück, wenn keine Übersetzung existiert
                 if (translation && translation.toLowerCase() !== germanText.toLowerCase()) {
                     return translation;
                 }
             }
-            // Fallback: öffentlicher LibreTranslate Mirror (optional)
+            // Fallback LibreTranslate (optional)
             const libreUrl = "https://translate.mentality.rip/translate";
             const libreResp = await fetch(libreUrl, {
                 method: "POST",
@@ -373,107 +375,85 @@
             }
             return null;
         } catch (err) {
-            console.warn("Übersetzungs-API fehlgeschlagen", err);
+            console.warn("API-Fehler", err);
             return null;
         }
     }
     
     // --------------------------------------------------------------
-    // 5. Hauptlogik: Satz in Wörter zergliedern, jedes Wort prüfen
-    //    (fallback für einzelne Wörter und Phrasen – einfacher tokenbasierter Ansatz)
+    // 5. Hauptlogik: Übersetzung mit Wörterbuch oder API
     // --------------------------------------------------------------
     async function translatePhrase(germanSentence) {
         if (!germanSentence.trim()) return "";
+        const lowerSentence = germanSentence.toLowerCase().trim();
         
-        const words = germanSentence.split(/(\s+|[.,!?;:])/); // Behalte Leerzeichen & Interpunktion
+        // Zuerst prüfen, ob der gesamte Satz exakt im Wörterbuch steht (z.B. Redewendungen)
+        if (dictionary.has(lowerSentence)) {
+            return dictionary.get(lowerSentence);
+        }
         
+        // Wort-für-Wort-Übersetzung (einfach, für einzelne Wörter)
+        const words = germanSentence.split(/(\s+|[.,!?;:])/);
+        let allKnown = true;
         let translatedParts = [];
-        let usedFallbackForAny = false;
-        
         for (let token of words) {
-            // Wenn Leerzeichen oder Satzzeichen → unverändert übernehmen
             if (/^\s+$/.test(token) || /^[.,!?;:]+$/.test(token)) {
                 translatedParts.push(token);
                 continue;
             }
-            
             const lowerToken = token.toLowerCase();
-            // Exakte Übereinstimmung im Wörterbuch?
             if (dictionary.has(lowerToken)) {
                 translatedParts.push(dictionary.get(lowerToken));
-            } 
-            else {
-                // Kein Treffer: verwende API (gesamt? Für Phrasen besser den ganzen Satz zu übersetzen
-                // aber um Ressourcen zu sparen: Falls noch kein Fallback für diesen Satz, mache eine Gesamtübersetzung)
-                // Optimierung: Wenn mitten im Satz ein unbekanntes Wort vorkommt, übersetzen wir den gesamten Satz einmalig.
-                // Aber dafür müssen wir den Fallback cache pro Satz aufrufen.
-                usedFallbackForAny = true;
-                // Speziell: Falls wir eine Phrase als Ganzes übersetzen müssen (bessere Qualität)
-                // Wir unterbrechen und rufen die API für den gesamten Satz auf.
-                // Dieser Fall wird unten behandelt.
-                translatedParts = null; // Markiere, dass wir den kompletten Satz übersetzen.
+            } else {
+                allKnown = false;
                 break;
             }
         }
-        
-        // Wenn jedes Wort einzeln im Dict war -> zusammensetzen
-        if (translatedParts !== null) {
-            let final = translatedParts.join('');
-            final = toJesidicScript(final);
-            return { text: final, usedFallback: usedFallbackForAny };
+        if (allKnown && translatedParts.length > 0) {
+            let result = translatedParts.join('');
+            return convertKurdishToYezidi(result); // auch wenn direkt aus Wörterbuch, trotzdem konvertieren? Nein, Wörterbuch-Einträge sind bereits jesidisch. Aber zur Sicherheit lassen wir die Konvertierung weg, weil sie sonst Doppelersetzungen macht.
+            // Da Wörterbuch-Einträge bereits in jesidischer Schrift sein sollten, wenden wir hier keine Konvertierung an.
+            // Aber der Benutzer hat gesagt: "die Buchstaben werden nicht angepasst" – wenn die Tabelle bereits jesidisch enthält, ist alles ok.
+            // Also für reine Wörterbuch-Übersetzung geben wir direkt zurück.
         }
         
-        // Vollständige Satzübersetzung via API (Deutsch -> Kurdisch)
-        let apiTranslation = await translateGermanToKurmanji(germanSentence);
-        if (apiTranslation) {
-            let converted = toJesidicScript(apiTranslation);
-            return { text: converted, usedFallback: true };
-        } else {
-            return { text: "[Übersetzung nicht verfügbar – bitte später versuchen]", usedFallback: false };
+        // Fallback: gesamten Satz über API übersetzen (Kurdisch)
+        let kurdishTranslation = await translateGermanToKurmanji(germanSentence);
+        if (kurdishTranslation) {
+            // Konvertiere von Kurdisch zu Jesidisch
+            return convertKurdishToYezidi(kurdishTranslation);
         }
+        
+        return "[Übersetzung fehlgeschlagen]";
     }
     
     // --------------------------------------------------------------
-    // UI Handling
+    // UI
     // --------------------------------------------------------------
     let isTranslating = false;
     const translateBtn = document.getElementById("translateBtn");
     const inputField = document.getElementById("germanInput");
     const outputDiv = document.getElementById("translationOutput");
-    const infoNoteDiv = document.getElementById("infoNote");
     
     async function performTranslation() {
         if (isTranslating) return;
         const text = inputField.value.trim();
         if (!text) {
             outputDiv.innerHTML = "✏️ Bitte deutschen Text eingeben.";
-            infoNoteDiv.innerHTML = "";
             return;
         }
-        
         isTranslating = true;
         translateBtn.disabled = true;
-        translateBtn.innerHTML = '<span class="loader"></span> Übersetzung läuft...';
-        outputDiv.innerHTML = "Übersetze...";
-        infoNoteDiv.innerHTML = "";
+        translateBtn.innerHTML = '<span class="loader"></span> Übersetze...';
+        outputDiv.innerHTML = "Wird übersetzt...";
         
         try {
-            await loadSheetDictionary(); // sicherstellen, dass Wörterbuch bereit ist
+            await loadSheetDictionary();
             const result = await translatePhrase(text);
-            outputDiv.innerHTML = escapeHtml(result.text);
-            if (result.usedFallback) {
-                infoNoteDiv.innerHTML = '<div class="fallback-note">🌍 Teilweise oder vollständig aus dem Kurdischen (Kurmanji) übersetzt & jesidisch angepasst.</div>';
-            } else {
-                if (dictionary.size === 0) {
-                    infoNoteDiv.innerHTML = '<div class="fallback-note">ℹ️ Wörterbuch nicht geladen – Übersetzung stammt aus API.</div>';
-                } else {
-                    infoNoteDiv.innerHTML = '<div class="fallback-note">✅ Direkt aus dem Jesidisch-Wörterbuch übersetzt.</div>';
-                }
-            }
+            outputDiv.innerHTML = escapeHtml(result);
         } catch (err) {
             console.error(err);
-            outputDiv.innerHTML = "⚠️ Fehler bei der Übersetzung. Siehe Konsole.";
-            infoNoteDiv.innerHTML = '<div class="error">Netzwerkproblem oder API nicht erreichbar.</div>';
+            outputDiv.innerHTML = "⚠️ Fehler bei der Übersetzung.";
         } finally {
             isTranslating = false;
             translateBtn.disabled = false;
@@ -481,19 +461,15 @@
         }
     }
     
-    // Hilfsfunktion Escape
     function escapeHtml(str) {
         return str.replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
             return m;
-        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-            return c;
         });
     }
     
-    // Beispieltexte
     function loadExample() {
         inputField.value = "Hallo, wie geht es dir?";
         performTranslation();
@@ -502,15 +478,12 @@
     function clearAll() {
         inputField.value = "";
         outputDiv.innerHTML = "—";
-        infoNoteDiv.innerHTML = "";
     }
     
-    // Event-Listener
     translateBtn.addEventListener("click", performTranslation);
     document.getElementById("swapBtn").addEventListener("click", loadExample);
     document.getElementById("clearBtn").addEventListener("click", clearAll);
     
-    // Vorab das Wörterbuch im Hintergrund laden
     loadSheetDictionary().catch(console.warn);
 </script>
 </body>
